@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does the Hindenburg Omen Work?</title>
+<meta name="description" content="The Hindenburg Omen fires when the market makes new highs and new lows at once — a house divided. The instinct is good. Rebuilt on 31 years of SPY data, it does leave a mark: a mild one-month drift lower. But as the crash bell it's sold as, it mostly cries wolf.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Does the Hindenburg Omen work? A mild one-month tilt — not a crash bell.">
+<meta property="og:description" content="The famous breadth divergence signal has a genuinely good instinct. Test it on 31 years of SPY and the real edge is a ~1-month drift lower — as a crash predictor it's an 81% false alarm even at its best.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/hindenburg-omen-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Does the Hindenburg Omen work? A mild one-month tilt — not a crash bell.">
+<meta name="twitter:description" content="Breadth divergence is a real, mild caution flag. It is not the apocalypse siren it's famous for — the crash hit rate is barely above the house baseline.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/hindenburg-omen-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--crit); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--crit) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--crit) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A market-omen rabbit hole · Sep 2026</p>
+  <h1>Does the <em>Hindenburg Omen</em> work?</h1>
+  <p class="dek">It&rsquo;s the most quotable signal in technical analysis &mdash; the market makes fresh 52-week highs and fresh 52-week lows at the same time, a house internally divided, and doom is supposedly near. The instinct behind it is genuinely good. So I rebuilt it on 31 years of data and looked. It does leave a mark: a mild drift lower over the following month. As the crash bell it&rsquo;s famous for? That part mostly cries wolf.</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>SPY (total return)</span>
+    <span>214 signals · 1995&ndash;2026</span>
+    <span>Norgate Data</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Give the Omen its due first, because the core idea is sound. A healthy advance is broad: lots of stocks making new highs, almost none making new lows. When you see <em>both</em> wings firing at once &mdash; a pile of new highs <em>and</em> a pile of new lows, while the index itself is still grinding upward &mdash; something underneath the surface is coming apart. That&rsquo;s a real form of breadth divergence, and most people never look past the index price to see it. Reaching for that signal is a good instinct.</p>
+
+  <p>The trouble is the reputation. The Hindenburg Omen gets invoked as a crash siren &mdash; fire it and batten the hatches. So I coded the classic rules (both wings above 2.2% of issues, index above its level 50 days ago, McClellan Oscillator negative, new highs no more than twice new lows), ran it across the S&amp;P 1500 back to 1995, and measured what SPY actually did afterward. Two things fell out. There <em>is</em> a real edge in there &mdash; it&rsquo;s just small and short. And the crash-prediction part barely beats a coin the market was already flipping.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Signal days · 31 years</p>
+      <div class="big c-safe">214</div>
+      <p class="sub">Individual Hindenburg signals in 7,972 trading days &mdash; 2.7% of all days. 30 of them confirmed into the traditional 2+ cluster.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Next 20 days · after a signal</p>
+      <div class="big c-claim">&minus;0.68<span style="font-size:.5em">%</span></div>
+      <p class="sub">Average SPY return over the month after a signal, versus <strong>+0.95%</strong> on an ordinary day. Real &mdash; but a tilt, not a cliff.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Crash hit rate · strong cluster</p>
+      <div class="big c-crit">19<span style="font-size:.5em">%</span></div>
+      <p class="sub">Share of 3+ clusters followed by a &gt;15% drop within 60 days &mdash; vs 9% baseline. Double a rare event, still 81% false alarms.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>What actually shows up: a one-month chill</h2>
+  <p>Here&rsquo;s the honest edge. Line up all 214 signal days and track SPY forward, and the first month runs slightly <em>negative</em> where an average month runs positive. Five days out: &minus;0.16% versus a +0.24% baseline. Ten days: &minus;0.17% versus +0.48%. Twenty days: &minus;0.68% versus +0.95%. Just over half of those windows finish lower, against roughly a third for a random day. That&rsquo;s a genuine, repeatable bearish tilt &mdash; the market really does trade a touch heavier right after the internals split.</p>
+
+  <p>But watch what happens next. Push the horizon out and the chill wears off: by 40 days the average is back above zero, and by 60 the drift is positive again. The signal buys you a cautious month, then the market&rsquo;s upward pull reasserts itself. It&rsquo;s a speed bump, not a wall.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Average SPY return after a Hindenburg signal, by horizon</h3>
+    <p class="csub">214 signal days · 1995&ndash;2026 · total-return SPY</p>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>The tell is short. The first month after a signal drifts red &mdash; the deepest average dip lands around the 20-day mark (&minus;0.68%) &mdash; and then the market&rsquo;s own upward drift takes back over: positive again by 40 days, and up +3.0% by 120. For comparison an <em>average</em> day is already +0.95% at 20 days and +5.6% at 120. The Omen doesn&rsquo;t cause a crash; it rents you a nervous month.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">02</span>The crash bell barely rings</h2>
+  <p>Now the part everyone actually cares about: does a confirmed Omen warn of a real drop? I took every 2+ and 3+ cluster and asked whether a meaningful drawdown followed within 60 days &mdash; then compared it to the rate on a <em>random</em> day, because the market takes ordinary dips all the time. That baseline is the whole trick, and it&rsquo;s where the Omen&rsquo;s reputation quietly falls apart.</p>
+
+  <p>A &gt;10% drawdown inside 60 days follows a 2+ cluster <strong>20%</strong> of the time &mdash; exactly the baseline rate. The stronger 3+ cluster does nudge ahead: 30% versus 20% for a 10% drop, and 19% versus 9% for a 15% drop. So the intense clusters do carry a bit of extra crash risk. But &ldquo;19%&rdquo; means that even the scary version is followed by no big drawdown <strong>81%</strong> of the time. As a bell that tells you to sell, it rings false far more often than true.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Share of clusters followed by a &gt;15% drop within 60 days</h3>
+    <p class="csub">vs the rate on any random day &mdash; the baseline that matters</p>
+    <div class="legend">
+      <span><i style="background:var(--baseline)"></i>random day (baseline)</span>
+      <span><i style="background:var(--claim)"></i>2+ cluster</span>
+      <span><i style="background:var(--crit)"></i>3+ cluster</span>
+    </div>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>Only the strongest clusters (3+ signals in 36 days) clear the baseline by a real margin, and even they precede a serious drawdown fewer than one time in five. At the more common 10%-drop line, a 2+ cluster (20%) is indistinguishable from a coin the market was already flipping (20%). The Omen is a weak, noisy crash predictor &mdash; famous far out of proportion to its hit rate.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">03</span>In fairness: it did fire before the big ones</h2>
+  <p>The false-alarm rate is the headline, but it would be unfair to stop there &mdash; because when the market genuinely broke, the Omen was often standing there first. It flagged October 2007 on the doorstep of the financial crisis, May 2008 before the worst of it, late January 2020 three weeks ahead of the COVID crash, April 2022 into that bear market, and February 2025 before a sharp 19% air pocket. Those aren&rsquo;t nothing. The signal really is drawn to unhealthy tape.</p>
+
+  <p>The problem is everything <em>else</em> it flagged. The same rule cried wolf in 2004, 2017, 2019, 2023 and twice in 2024 &mdash; clusters that were followed by the market simply going up. Below is a fair sample of both faces: the hits that made its name, and the misfires that make it untradeable on its own.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>A sample of confirmed (2+) clusters and what SPY did next</caption>
+      <thead>
+        <tr><th>Cluster date</th><th>Next 20d</th><th>Next 60d</th><th>Worst dip, 60d</th></tr>
+      </thead>
+      <tbody>
+        <tr class="mark"><td>Oct 2007</td><td class="hi">&minus;3.7%</td><td class="hi">&minus;8.4%</td><td class="hi">&minus;9.7%</td></tr>
+        <tr class="mark"><td>May 2008</td><td class="hi">&minus;4.9%</td><td class="hi">&minus;7.8%</td><td class="hi">&minus;13.6%</td></tr>
+        <tr class="mark"><td>Jan 2020 · COVID</td><td class="hi">&minus;8.9%</td><td class="hi">&minus;12.9%</td><td class="hi">&minus;33.7%</td></tr>
+        <tr class="mark"><td>Apr 2022</td><td class="hi">&minus;8.3%</td><td class="hi">&minus;14.2%</td><td class="hi">&minus;18.3%</td></tr>
+        <tr class="mark"><td>Feb 2025</td><td class="hi">&minus;3.5%</td><td class="hi">&minus;7.0%</td><td class="hi">&minus;18.8%</td></tr>
+        <tr><td>Nov 2017</td><td class="lo">+2.2%</td><td class="lo">+9.5%</td><td>&minus;1.7%</td></tr>
+        <tr><td>May 2023</td><td class="lo">+3.7%</td><td class="lo">+9.2%</td><td>&minus;2.2%</td></tr>
+        <tr><td>Nov 2024</td><td class="lo">+5.7%</td><td class="lo">+5.7%</td><td>&minus;4.2%</td></tr>
+        <tr><td>Feb 2026</td><td>&minus;2.8%</td><td class="lo">+8.8%</td><td>&minus;8.6%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <p>The Omen isn&rsquo;t a fraud &mdash; it points at something real. It just points at &ldquo;the tape looks unhealthy,&rdquo; which sometimes means a crash and much more often means a wobble. The famous crashes are on its résumé; so are a dozen head fakes.</p>
+    <span class="who">Right instinct, oversold reputation.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">04</span>So what do you actually do with it?</h2>
+  <p>Treat it as a veto, not a forecast &mdash; and keep the window short, because that&rsquo;s where the entire edge lives. If you simply step to cash for 20 trading days after <em>every</em> signal and otherwise buy and hold SPY, you come out ahead on every axis: <strong>12.5% a year versus 11.2%</strong> for buy-and-hold, a shallower worst drawdown (&minus;49.8% versus &minus;55.2%), and a better Sharpe (0.78 versus 0.66) &mdash; all while sitting in cash only about a quarter of the time. You&rsquo;re just monetizing that one-month chill from section 1.</p>
+
+  <p>Push past 20 days, though, and it backfires: holding out 40 or 60 days sits out the recovery and drags the return below buy-and-hold. Waiting for the rarer 2+/3+ clusters doesn&rsquo;t help either &mdash; too few events to move a portfolio, and the edge is diluted by then. The usable version is unglamorous: a light, brief risk-off nudge after any signal. Not an alarm to liquidate on.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Signal</b><span>Classic rules on S&amp;P 1500 breadth: new 52-week highs and lows each <code>&ge; 2.2%</code> of issues traded, the index above its close 50 days prior, McClellan Oscillator <code>&lt; 0</code>, and highs <code>&le; 2&times;</code> lows. A confirmed cluster = 2+ (or 3+) signals inside a rolling 36 trading days.</span></li>
+    <li><b>Sample</b><span>7,972 trading days, Jan 1995 &ndash; Sep 2026. 214 signal days (2.7%), 30 two-plus clusters, 27 three-plus. Breadth series from Norgate&rsquo;s US Indices database.</span></li>
+    <li><b>Forward returns</b><span>Measured on SPY with dividends reinvested (total return), so the drift comparison is honest. Baseline = every trading day over the same span.</span></li>
+    <li><b>Crash test</b><span>Deepest peak-to-trough drawdown in the 60 days after each cluster, versus the same measure starting on a random day &mdash; the rate the market dips anyway.</span></li>
+    <li><b>Universe note</b><span>I used S&amp;P 1500 breadth. The classic McClellan version uses NYSE new highs/lows, which are heavy with bond funds and preferreds &mdash; those hit 52-week lows on rising rates alone, so an NYSE Hindenburg count can fire on rate noise while the stock-only version stays quiet. Always check which universe a quoted count is built on.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes the underlying idea wrong &mdash; and that&rsquo;s the fun of it. Breadth divergence is a legitimate thing to watch, and the Omen was an honest attempt to formalize it. Chasing it one rabbit hole deeper just right-sizes the claim: it&rsquo;s a mild, one-month caution flag with a real but modest edge, not the apocalypse siren the name implies. Respect it as a small yellow light. Don&rsquo;t sell your portfolio on it.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">@droskill</b>. Breadth and prices from Norgate Data; analysis in Python (norgatedata + pandas).</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index and total-return data, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('hind-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('hind-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- signed bar chart (supports negatives + a zero baseline) ----------
+function signedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, vals=opts.values, colors=opts.colors;
+  var ymin=opts.ymin, ymax=opts.ymax, step=opts.step;
+  var W=920, H=360, mL=46, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(g>0?'+':'')+g.toFixed(1)+'</text>';
+  }
+  var y0=y(0);
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 52);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+(v>0?'+':'')+v.toFixed(2)+'%</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+(v>0?'+':'')+v.toFixed(2)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- simple percent bar chart ----------
+function pctBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, vals=opts.values, colors=opts.colors, subs=opts.subs||[];
+  var W=920, H=360, mL=46, mR=14, mT=20, mB=64;
+  var pw=W-mL-mR, ph=H-mT-mB, ymax=opts.ymax||100;
+  var y=function(v){return mT+ph-(v/ymax)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  for(var g=0; g<=ymax; g+=opts.step||25){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g+'</text>';
+  }
+  svg+='<line x1="'+mL+'" y1="'+y(0)+'" x2="'+(W-mR)+'" y2="'+y(0)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.5, 120);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v), bh=y(0)-vy;
+    var col=cssvar(colors[i]);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+vy.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i].replace(/\n/g,' ')+': <b>'+v+'%</b>"></rect>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(vy-8).toFixed(1)+'" fill="'+col+'" font-size="15" font-weight="600" text-anchor="middle">'+v+'%</text>';
+    var lines=cats[i].split('\n');
+    for(var k=0;k<lines.length;k++)
+      svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22+k*16)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+lines[k]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+function drawAll(){
+  // Chart 1 — forward SPY return after a signal, by horizon. Red through ~1 month, heals after.
+  var hz=['5d','10d','20d','30d','40d','60d','120d'];
+  var fret=[-0.16,-0.17,-0.68,-0.14,0.16,0.62,3.03];
+  var fcol=fret.map(function(v){return v<0?'--claim':'--pos';});
+  signedBars('#chart1',{
+    cats:hz, values:fret, colors:fcol,
+    ymin:-1.0, ymax:3.5, step:0.5,
+    aria:'Average SPY return after a Hindenburg signal by horizon, negative through about one month then recovering'
+  });
+  // Chart 2 — crash hit rate: >15% drawdown within 60 days, baseline vs clusters
+  pctBars('#chart2',{
+    cats:['Random day\n(baseline)','2+ cluster','3+ cluster'],
+    values:[9,10,19],
+    colors:['--baseline','--claim','--crit'],
+    ymax:25, step:5,
+    aria:'Share followed by a greater-than-15-percent drawdown within 60 days: baseline 9 percent, 2-plus cluster 10 percent, 3-plus cluster 19 percent'
+  });
+}
+drawAll();
+addEventListener('resize',function(){/* responsive via viewBox */});
+</script>
+</body>
+</html>
