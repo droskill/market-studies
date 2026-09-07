@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Is Stage Analysis Just a Moving Average?</title>
+<meta name="description" content="Stan Weinstein's four-stage analysis is one of the great frameworks in technical analysis. I mechanized it and tested it on 900,000 survivorship-free S&P 500 stock-weeks. Stage 2 works — because it is a rising 30-week moving average. The rest of the taxonomy adds nothing.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Is stage analysis just a moving average?">
+<meta property="og:description" content="Weinstein's Stage 2 beats the market by +2.3%/yr — but Stage 2 IS a rising 30-week MA. The basing-vs-topping memory that makes the taxonomy special? Worth nothing (t = -0.5), on 900k survivorship-free stock-weeks.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/weinstein-stage-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Is stage analysis just a moving average?">
+<meta name="twitter:description" content="A faithful, survivorship-free test of Weinstein's four stages. The trend half is real; the taxonomy's distinctive memory is empirically inert.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/weinstein-stage-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.card img{width:100%; height:auto; display:block; border-radius:8px; border:1px solid var(--hair)}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--pos) 10%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--pos) 15%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A technical-analysis rabbit hole · Sep 2026</p>
+  <h1>Is <em>stage analysis</em> just a moving average?</h1>
+  <p class="dek">Stan Weinstein&rsquo;s four stages &mdash; basing, advancing, topping, declining &mdash; are one of the genuinely great frameworks for reading a chart. I&rsquo;ve always loved it. So I did the respectful thing and stress-tested it: mechanized the stages exactly, ran them on 900,000 survivorship-free S&amp;P&nbsp;500 stock-weeks, and asked what the taxonomy knows that a plain 30-week moving average doesn&rsquo;t. The answer surprised me a little, and it&rsquo;s a compliment in disguise.</p>
+  <div class="byline">
+    <span><b>Bento Analytics</b></span>
+    <span>S&amp;P 500 ($SPX)</span>
+    <span>901,533 stock-weeks · 1992&ndash;2026</span>
+    <span>Norgate Data · point-in-time</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Here&rsquo;s the setup, in case you&rsquo;ve never gone down this road. Weinstein watches a stock&rsquo;s weekly chart against its 30-week moving average and sorts it into a stage: a Stage&nbsp;1 base (flat MA, after a decline), a Stage&nbsp;2 advance (price above a rising MA), a Stage&nbsp;3 top (flat MA, after an advance), and a Stage&nbsp;4 decline (price below a falling MA). The whole prescription is: own Stage&nbsp;2, avoid Stage&nbsp;4. It&rsquo;s taught everywhere, and the core instinct &mdash; trade with the trend, not against it &mdash; is exactly right.</p>
+
+  <p>What I wanted to know is narrower. Every <em>piece</em> of Weinstein&rsquo;s method has been studied to death by academics: moving-average filters, relative strength, trend persistence. But nobody has isolated the <em>classification itself</em>. Does labeling a chart &ldquo;basing&rdquo; versus &ldquo;topping&rdquo; tell you anything a moving average can&rsquo;t already see? That turns out to be a shockingly clean question to answer, because of one detail most people skate past.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Stage 2 · excess return</p>
+      <div class="big c-pos">+2.3<span style="font-size:.5em">%</span></div>
+      <p class="sub">Per year over the S&amp;P, 13-week forward (<em>t</em>&nbsp;=&nbsp;2.7). The one stage that genuinely beats the market &mdash; and it&rsquo;s defined as &ldquo;MA rising.&rdquo;</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Basing minus Topping</p>
+      <div class="big c-claim">&minus;0.6<span style="font-size:.5em">%</span></div>
+      <p class="sub">Per year, on flat-MA weeks (<em>t</em>&nbsp;=&nbsp;&minus;0.5). The one thing a moving average can&rsquo;t compute &mdash; and it predicts nothing.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Survivorship inflation</p>
+      <div class="big c-crit">+6.3<span style="font-size:.5em">%</span></div>
+      <p class="sub">Per year that naive backtests add to Stage&nbsp;2 by using today&rsquo;s index members backward. Why the framework looks better than it is.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>The good news: the trend half is real</h2>
+  <p>Let&rsquo;s start with the win, because Weinstein earned it. I tagged all 901,533 survivorship-free member stock-weeks by stage and measured the forward return of each. In raw terms the four stages look almost identical (~10&ndash;12%/yr apiece), which is already a little suspicious. But the honest cut is the <em>market-excess</em> return &mdash; how much a stage beats the S&amp;P over the same window &mdash; and there exactly one stage separates from the pack. Stage&nbsp;2 earns <strong>+2.3%/yr over the market</strong> with a <em>t</em>-stat of 2.7. Stages 1, 3, and 4 are indistinguishable from zero. Owning advances beats the index; the &ldquo;avoid Stage&nbsp;4&rdquo; half doesn&rsquo;t even hold for large caps, whose declines revert right back to a market return.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Market-excess forward return by stage</h3>
+    <p class="csub">S&amp;P 500 · point-in-time members · 1992&ndash;2026 · 13-week forward, annualized</p>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>Only Stage&nbsp;2 (green) beats the market. But hold that thought &mdash; Stage&nbsp;2 is <em>defined</em> as &ldquo;price above a rising 30-week MA,&rdquo; which is just a trend filter. The interesting money is whether any of the <em>other</em> distinctions the taxonomy draws carry information a moving average doesn&rsquo;t.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">02</span>The catch: two of the four stages are the same flat line</h2>
+  <p>Here&rsquo;s the detail everything hinges on. Look at how the stages are actually defined. A rising MA is Stage&nbsp;2. A falling MA is Stage&nbsp;4. Those two are, word for word, a moving-average trend filter &mdash; anything that keys off the slope of the line produces them for free. So where could the taxonomy possibly add value a moving average can&rsquo;t? Only in the <em>third</em> case: the <strong>flat MA</strong>. And a flat MA is <em>both</em> Stage&nbsp;1 (basing) and Stage&nbsp;3 (topping).</p>
+  <p>The only thing separating them is <em>history</em> &mdash; a flat MA reached from below (after a decline) is a base; the same flat line reached from above (after an advance) is a top. A moving average is blind to that difference; it just sees &ldquo;flat.&rdquo; Weinstein&rsquo;s memory sees basing versus topping. <strong>That single distinction is the entire incremental content of the four-stage taxonomy.</strong> Everything else is the moving average wearing a costume. So the whole framework reduces to one testable question: on flat-MA weeks, do basing stocks out-earn topping stocks?</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The classifier in the wild &mdash; NVDA, weekly</h3>
+    <p class="csub">green = Stage 2 · red = Stage 4 · grey = Stage 1 · orange = Stage 3 · blue = 30-week MA</p>
+    <img src="nvda-stages.png" alt="NVDA weekly chart shaded by Weinstein stage, with the 30-week moving average">
+  </div>
+  <figcaption>The mechanized classifier is faithful: it rides the advances in green and steps aside for the 2008 and 2022 declines in red. Notice how <em>thin</em> the grey (basing) and orange (topping) bands are &mdash; truly flat-MA weeks are rare for a trend leader. Pool across a thousand stocks and three decades, though, and they add up to 100,050 flat-MA weeks &mdash; plenty to test.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">03</span>The money test: basing versus topping</h2>
+  <p>So I ran it. Take only the flat-MA weeks &mdash; the ones where a moving average throws up its hands &mdash; and compare what happens next after a basing label versus a topping label, week by week, using Fama&ndash;MacBeth means so no single bull market can manufacture a result. The difference is <strong>nothing</strong>. At 13 weeks, basing minus topping is &minus;0.6%/yr with a <em>t</em>-stat of &minus;0.5. If anything, &ldquo;topping&rdquo; mildly <em>out</em>-performs &ldquo;basing&rdquo; at short horizons &mdash; the opposite of the story. And this holds across twelve different ways of drawing the stages; the only specifications that reach significance lean the wrong way for Weinstein.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Stage 1 (basing) minus Stage 3 (topping), forward return</h3>
+    <p class="csub">flat-MA weeks only · annualized excess of basing over topping · the taxonomy&rsquo;s one job</p>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>Every bar hugs the zero line. The prior-state memory that separates a base from a top &mdash; the sole thing Weinstein&rsquo;s taxonomy computes that a moving average cannot &mdash; carries no forward-return information at any horizon. This is the whole ballgame, and it&rsquo;s a null.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">04</span>Trading it: the memory vanishes</h2>
+  <p>A panel of returns is one thing; a tradeable book is another, so I built the nested ladder too. Buy-and-hold, then a plain &ldquo;price above the 30-week MA&rdquo; filter, then Stage&nbsp;2 only (which <em>is</em> &ldquo;MA rising&rdquo;), then a full Weinstein book that actually uses the memory &mdash; buying Stage-1 breakouts early and selling at the first sign of a Stage-3 top &mdash; then that plus a relative-strength screen. Long-only, equal-weight, weekly, cash to T-bills, net of costs, on the same point-in-time universe.</p>
+  <p>The full Weinstein book and the plain Stage-2 filter come out <strong>identical</strong> &mdash; Sharpe 0.85 versus 0.85, MAR 0.32 versus 0.32, same drawdown. Their equity curves literally draw on top of each other. The relative-strength version gets a slightly better Sharpe, but only by sitting 56% in cash &mdash; that&rsquo;s lower risk, not more skill. The real, replicable benefit in the whole table is the generic trend filter: it roughly halves the drawdown of buy-and-hold and lifts risk-adjusted return &mdash; but that&rsquo;s a one-line moving average, and it costs you about four points of annual return to get it.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Nested portfolios · point-in-time S&amp;P 500 · weekly · net of 10bps/side · 1992&ndash;2026</caption>
+      <thead>
+        <tr><th>System</th><th>Invested</th><th>CAGR</th><th>Sharpe</th><th>Max DD</th><th>MAR</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Buy &amp; hold (EW members)</td><td>100%</td><td>11.8%</td><td>0.70</td><td>&minus;59%</td><td>0.20</td></tr>
+        <tr><td>Price &gt; 30-week MA</td><td>62%</td><td>6.9%</td><td>0.82</td><td class="lo">&minus;19%</td><td>0.36</td></tr>
+        <tr><td>Stage 2 (MA rising)</td><td>59%</td><td>8.0%</td><td>0.85</td><td>&minus;25%</td><td>0.32</td></tr>
+        <tr class="mark"><td>Full Weinstein (the memory)</td><td>61%</td><td>8.1%</td><td>0.85</td><td>&minus;25%</td><td>0.32</td></tr>
+        <tr><td>Full Weinstein + RS&gt;0</td><td>44%</td><td>6.4%</td><td class="lo">0.93</td><td>&minus;17%</td><td>0.37</td></tr>
+        <tr class="tot"><td>S&amp;P 500 (cap-wt)</td><td>100%</td><td>8.7%</td><td>0.58</td><td>&minus;56%</td><td>0.15</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Equity curves &mdash; the memory adds nothing</h3>
+    <p class="csub">log scale · net of costs · the red line is drawn on top of the green one</p>
+    <img src="portfolios.png" alt="Equity curves of the nested portfolios; Full Weinstein overlaps the Stage 2 filter exactly">
+  </div>
+  <figcaption>The Full Weinstein book (red) is plotted <em>over</em> the plain Stage-2 / MA-rising filter (green) &mdash; and you can&rsquo;t see it, because they&rsquo;re the same curve. Every trend filter trades away CAGR versus equal-weight buy-and-hold (grey) in exchange for far shallower drawdowns. That trade is real; it just isn&rsquo;t Weinstein-specific.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">05</span>The mirage: why backtests flatter it</h2>
+  <p>One more thing, because it explains why so many glowing Weinstein backtests exist. Almost all of them take <em>today&rsquo;s</em> S&amp;P&nbsp;500 members and run the rules backward &mdash; which quietly deletes every company that got kicked out of the index, precisely the names that rotted through Stage&nbsp;4 into delisting. Redo the Stage-2 number that way and it jumps from a true <strong>+12.4%</strong> to <strong>+18.7%</strong> a year. That 6.3-point mirage is more than double the real edge of the trend filter. A moving average in a stage-analysis costume, tested on survivors only, looks like genuine alpha. It isn&rsquo;t.</p>
+
+  <div class="callout">
+    <p>Weinstein&rsquo;s Stage&nbsp;2 works because it <em>is</em> a moving-average trend filter &mdash; the one component of the framework with a real edge. The basing-versus-topping memory that makes the taxonomy feel like a deeper insight is, on the numbers, a moving average in a costume.</p>
+    <span class="who">The same good idea, one rabbit hole deeper.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">06</span>So what do you actually do?</h2>
+  <p>Keep using stage analysis &mdash; as a <em>language</em>. It&rsquo;s a wonderful way to describe where a stock sits in its trend, and the discipline of owning advances and standing aside for declines is exactly the behavior that shows up as the trend-filter benefit in the table above. What the evidence says is narrower and kind of freeing: you don&rsquo;t need the elaborate apparatus. The sign of the 30-week moving-average slope carries all the forecasting power the four stages do, with a fraction of the fuss, none of the discretion, and immunity to the survivorship bias that flatters the hand-drawn version. Watch the line, not the label. That 30-week line Weinstein built the whole thing around? That was always the tell.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Universe</b><span>&ldquo;S&amp;P 500 Current &amp; Past&rdquo; from Norgate Data (1,301 symbols, incl. delisted). A stock counts in a week only if it was an <em>actual</em> index member that week &mdash; point-in-time constituency, no survivorship bias. 901,533 member stock-weeks, Jan 1992&ndash;Sep 2026.</span></li>
+    <li><b>Classifier</b><span>Stage from the 30-week MA slope: rising&nbsp;&rarr;&nbsp;2, falling&nbsp;&rarr;&nbsp;4, flat&nbsp;&rarr;&nbsp;1 or 3 by the prior committed stage (basing if from a decline, topping if from an advance). A few-week confirmation delay removes chatter. Weekly bars, total-return adjusted closes.</span></li>
+    <li><b>Statistics</b><span>Fama&ndash;MacBeth: each week&rsquo;s cross-sectional mean forward return within a stage is the unit of inference, so cross-stock correlation can&rsquo;t fake significance. Newey&ndash;West standard errors with lag = the forward horizon (overlapping windows). Returns raw and in excess of the S&amp;P.</span></li>
+    <li><b>The money test</b><span>Flat-MA weeks only (100,050 of them), within-week paired difference of Stage&nbsp;1 minus Stage&nbsp;3 forward returns. Robust across a 12-point grid of flat-band width, slope window, and confirmation delay.</span></li>
+    <li><b>Portfolios</b><span>Long-only, equal-weight over qualifiers at 1/N of current membership, remainder in 3-month T-bills, rebalanced weekly, 10&nbsp;bps/side. Decisions use data through week <em>t</em>; returns earned <em>t</em>&nbsp;&rarr;&nbsp;<em>t</em>+1. No look-ahead.</span></li>
+    <li><b>Credit</b><span>Framework: Stan Weinstein, <em>Secrets for Profiting in Bull and Bear Markets</em> (1988). Adjacent literature: Brock&ndash;Lakonishok&ndash;LeBaron (1992), Zakamulin (2017), Faber (2007), Jegadeesh&ndash;Titman (1993), Moskowitz&ndash;Ooi&ndash;Pedersen (2012).</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes Weinstein wrong &mdash; that&rsquo;s the point. He reached for the right variable (trend state, via the 30-week line) and built a vivid, teachable language around it that has helped a generation of traders stay on the correct side of the tape. Chasing the taxonomy&rsquo;s one distinctive claim all the way down just adds a coda: the magic was in the moving average the whole time. Hats off to a classic &mdash; it holds up exactly where it should.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">Bento Analytics</b>, as an homage to and stress-test of <b style="color:var(--ink-2)">Stan Weinstein&rsquo;s stage analysis</b>. Point-in-time prices from Norgate Data; analysis in Python (norgatedata + pandas + numpy).</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index-member price data with modeled costs, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('weinstein-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('weinstein-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- signed bar chart (supports negatives + a zero baseline) ----------
+function signedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, vals=opts.values, colors=opts.colors;
+  var ymin=opts.ymin, ymax=opts.ymax, step=opts.step;
+  var W=920, H=360, mL=46, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(g>0?'+':'')+g.toFixed(1)+'</text>';
+  }
+  var y0=y(0);
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 62);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+(v>0?'+':'')+v.toFixed(2)+'%</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+(v>0?'+':'')+v.toFixed(2)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+function drawAll(){
+  // 01 — market-excess forward return by stage; only Stage 2 flagged in "pos"
+  signedBars('#chart1',{
+    cats:['Stage 1','Stage 2','Stage 3','Stage 4'],
+    values:[0.6,2.3,1.4,0.4],
+    colors:['--ink-2','--pos','--ink-2','--ink-2'],
+    ymin:0, ymax:3.0, step:0.5,
+    aria:'Market-excess forward return by Weinstein stage; only Stage 2 is meaningfully positive'
+  });
+  // 03 — basing minus topping, flat-MA weeks, by horizon; all hug zero
+  signedBars('#chart2',{
+    cats:['4 wk','13 wk','26 wk','52 wk'],
+    values:[-1.9,-0.6,0.1,0.6],
+    colors:['--ink-2','--ink-2','--ink-2','--ink-2'],
+    ymin:-2.0, ymax:2.0, step:1.0,
+    aria:'Stage 1 minus Stage 3 forward return on flat-MA weeks, near zero at every horizon'
+  });
+}
+drawAll();
+addEventListener('resize',function(){/* responsive via viewBox */});
+</script>
+</body>
+</html>

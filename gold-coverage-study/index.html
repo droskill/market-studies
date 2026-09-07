@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Record Ratio That Isn't</title>
+<meta name="description" content="A widely-shared thread says gold is a record 171% of the money supply, and that the last two times this line ran hot the world got a monetary reset. The metric is real. The record isn't — and at its extremes it has marked gold tops, not launchpads.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gold is a 'record 171% of the money supply'? Not on any standard measure.">
+<meta property="og:description" content="I rebuilt the gold-coverage ratio from 1971. Today sits on its 54-year median, not a record — and when it has hit 1980-style extremes, gold fell for years afterward.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/gold-coverage-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gold is a 'record 171% of the money supply'? Not on any standard measure.">
+<meta name="twitter:description" content="The gold-coverage ratio is a real metric. Today it's at its median, its 1980 peak was ~113%, and high readings have marked gold tops — not the monetary-reset launchpad the thread implies.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/gold-coverage-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f;
+  --gold:#b8860b; --spx:#2565c2;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51;
+    --gold:#e0b13a; --spx:#4d92e8;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51;
+  --gold:#e0b13a; --spx:#4d92e8;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+/* ---- masthead ---- */
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+/* ---- body type ---- */
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+.kicker{
+  font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 18px;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+/* ---- stat tiles ---- */
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)}
+
+/* ---- figure / chart ---- */
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+/* ---- data table ---- */
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--safe); font-weight:600}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+/* ---- pull quote / callout ---- */
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+/* ---- receipts / method ---- */
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+/* ---- footer ---- */
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+/* ---- theme toggle ---- */
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+/* ---- tooltip ---- */
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A gold-and-money rabbit hole · Sep 2026</p>
+  <h1>A record ratio, <em>that isn&rsquo;t.</em></h1>
+  <p class="dek">A widely-shared thread says gold is a record 171% of the money supply, and that the last two times this line ran hot the world got a monetary reset. The metric is real. The record isn&rsquo;t &mdash; and at its extremes it has marked gold <em>tops</em>, not launchpads.</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>Gold vs. the US money supply</span>
+    <span>655 months · 1971&ndash;2026</span>
+    <span>FRED + Norgate Data</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">The thread, from <a href="https://x.com/bravosresearch" rel="nofollow">@bravosresearch</a>: gold has climbed to a <em>record 171% of total money supply</em>, and the only two prior times this line ran this hot &mdash; the 1930s and the 1970s &mdash; both ended in a major monetary reset. Stitch in China halting retail &ldquo;paper gold&rdquo; trading, an estimated 133 paper claims per ounce of real metal, and a debased dollar, and you get a tidy conclusion: gold&rsquo;s price is artificially suppressed and <em>must</em> reprice higher.</p>
+
+  <p>Credit where it&rsquo;s due, because a lot of this is real. The gold-coverage ratio &mdash; the market value of a country&rsquo;s gold against the money it has printed &mdash; is a genuine, century-old gauge of how &ldquo;backed&rdquo; a currency is. The monetary history checks out: the 1934 revaluation from $20.67 to $35, the 1944 Bretton Woods dollar-for-gold promise, Nixon closing the gold window in 1971. China really did suspend retail paper-gold trading at its big banks in July 2026. And gold really did spike near $5,600 in January 2026 before shedding about 30%. None of that is invented.</p>
+
+  <p>But a chart that&rsquo;s meant to <em>time</em> something has to be tested against what actually happens next. So I rebuilt the ratio from scratch &mdash; the United States&rsquo; constant ~261.5&nbsp;million ounces of gold times the monthly gold price, divided by the monetary base and by M2, back to the month gold began to float in 1971 &mdash; and asked it three plain questions. Are we really at a record? Does a high reading foretell gold repricing higher? And does it warn of trouble in <em>stocks</em>, the way &ldquo;major warning sign&rdquo; implies?</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Their headline: a record 171%</p>
+      <div class="big c-safe">19<span style="font-size:.5em">%</span></div>
+      <p class="sub">What gold actually is as a share of the US monetary base today &mdash; sitting right on its 54-year median. The metric&rsquo;s real record was ~113%, in January 1980.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">After a 1980-style extreme</p>
+      <div class="big c-crit">&minus;3<span style="font-size:.5em">%</span></div>
+      <p class="sub">Average <em>next-12-month</em> gold return from the ratio&rsquo;s top decile. High readings have marked gold tops (rank corr. &minus;0.20 to &minus;0.35), not launchpads.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">The ratio as an equity warning</p>
+      <div class="big c-claim">+0.02</div>
+      <p class="sub">Correlation between the ratio and the next year&rsquo;s S&amp;P 500 return. As a stock-market warning sign it&rsquo;s statistical noise.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>It isn&rsquo;t a record &mdash; it&rsquo;s the median</h2>
+  <p>Here is the whole series since 1971. On the standard construction &mdash; gold&rsquo;s market value over the US monetary base &mdash; the line peaked near <strong>113% in January 1980</strong>, at the blow-off top of the last great gold mania. Today it sits around <strong>19%</strong>, essentially dead on its half-century median, well down the left-hand slope of that mountain. Measured against the broader M2 it&rsquo;s about 4.6%, versus a 1980 peak near 12% &mdash; again, mid-pack, not extreme. There is no denominator I can build from actual US money and actual US gold that puts today at 171%, or anywhere near a record. That figure comes from a smaller, undisclosed base; the honest versions say something much more ordinary.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>US gold reserves as a share of the monetary base, 1971&ndash;2026</h3>
+    <p class="csub">market value of ~261.5M oz &divide; US monetary base · year-end points</p>
+    <div class="chart" id="chartLine"></div>
+  </div>
+  <figcaption>The metric&rsquo;s record is the January 1980 monthly peak near 113% (year-end 1980 had already fallen back to ~86%). Today&rsquo;s ~19% is ordinary. Different money denominators slide the exact number around &mdash; which is precisely why a &ldquo;record 171%&rdquo; on an unstated base should be treated with care.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">02</span>At the extremes, gold <em>falls</em></h2>
+  <p>Now the part the thread gets backwards. Sort every month since 1971 into ten buckets by how high the coverage ratio was, then look at what gold did over the following year. The relationship is <strong>negative</strong> at every horizon &mdash; a rank correlation of &minus;0.20 at one year, &minus;0.35 at three. The cheap end (a low ratio) is where forward returns cluster high. The richest bucket &mdash; the 1980-style extreme the thread romanticizes &mdash; delivered a <strong>negative</strong> average over the next one, three, and five years. That is exactly the history: gold rose <em>into</em> a high ratio, and once the ratio got stretched, it fell for two decades. A high reading is a mean-reversion warning on <em>gold itself</em>, not a coiled spring.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Next-12-month return by coverage-ratio decile</h3>
+    <p class="csub">gold vs. S&amp;P 500 · decile 1 = cheapest ratio, decile 10 = richest (1980-style)</p>
+    <div class="legend">
+      <span><i style="background:var(--gold)"></i>Gold, next 12 months</span>
+      <span><i style="background:var(--spx)"></i>S&amp;P 500, next 12 months</span>
+    </div>
+    <div class="chart" id="chartDec"></div>
+  </div>
+  <figcaption>Read the gold bars left to right: the payoff drains out of the rich deciles and the top bucket turns negative. The S&amp;P bars, by contrast, wander around +10% with no relationship to the ratio at all &mdash; the point of the next section.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">03</span>As an equity warning, it&rsquo;s noise</h2>
+  <p>The thread frames the ratio as a &ldquo;major warning sign&rdquo; for markets. It isn&rsquo;t. The correlation between the ratio and the next year&rsquo;s S&amp;P 500 return is <strong>+0.02</strong> &mdash; and it&rsquo;s faintly <em>positive</em>, not negative, out at longer horizons. In the top decile, the very readings that supposedly precede a reset, stocks went on to return roughly <strong>+11% over the next year, +43% over three, +84% over five</strong>. Whatever the gold-coverage ratio measures, it is a statement about <em>gold&rsquo;s</em> valuation against money, not a forecast of equities. Using it to brace for a stock-market crash has no historical support.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">04</span>Trade it, and it just keeps you out</h2>
+  <p>An indicator earns its keep in a portfolio, so I wired the ratio into the simplest honest rule: hold the asset only when the coverage ratio is below its own expanding median (&ldquo;cheap&rdquo;), otherwise sit in cash, with the signal lagged a month so nothing peeks at data it couldn&rsquo;t have had. It does contain the one real nugget &mdash; the cheap-side rule sidesteps the worst of gold&rsquo;s post-1980 collapse and lifts gold&rsquo;s risk-adjusted return slightly. But the thread&rsquo;s implied trade &mdash; <em>buy because the ratio is high</em> &mdash; is the losing side of every column below.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Timing by coverage ratio · monthly · 1976&ndash;2026 · signal lagged 1 month</caption>
+      <thead>
+        <tr><th>Rule</th><th>Gold CAGR</th><th>Gold MaxDD</th><th>Gold Sharpe</th><th>S&amp;P CAGR</th><th>S&amp;P MaxDD</th><th>S&amp;P Sharpe</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Buy &amp; hold</td><td>6.9%</td><td>&minus;62%</td><td>0.49</td><td>9.1%</td><td>&minus;53%</td><td>0.66</td></tr>
+        <tr><td>In when ratio CHEAP</td><td class="lo">5.5%</td><td>&minus;41%</td><td class="lo">0.56</td><td>7.2%</td><td>&minus;50%</td><td>0.62</td></tr>
+        <tr><td>In when ratio RICH</td><td class="hi">1.3%</td><td>&minus;57%</td><td class="hi">0.16</td><td class="hi">1.8%</td><td>&minus;30%</td><td class="hi">0.26</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <p>Being long gold <em>because</em> the coverage ratio is high &mdash; the thread&rsquo;s whole thesis &mdash; earned 1.3% a year with a 57% drawdown. The ratio is a mild overvaluation gauge, not a reset alarm.</p>
+    <span class="who">A high reading has said &ldquo;gold is expensive,&rdquo; not &ldquo;gold is about to explode.&rdquo;</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">05</span>What the ratio can and can&rsquo;t tell you</h2>
+  <p>So where does that leave the thread? Its instinct &mdash; that money-printing and gold belong on the same page &mdash; is sound, and its facts are mostly right. What doesn&rsquo;t hold is the load-bearing chart. We&rsquo;re at the median of the coverage ratio, not a record; the metric&rsquo;s genuine extremes have preceded gold <em>declines</em>, not repricings; and it carries no information about equities at all. The two-episode &ldquo;it precedes resets&rdquo; pattern is also a tiny sample dominated entirely by 1980 &mdash; the sign of the effect is clear, but you can&rsquo;t build a base rate from one mountain.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Ratio</b><span>US official gold (constant 261.5M oz since 1971) &times; monthly gold price, over the US monetary base (<code>BOGMBASE</code>) and M2 (<code>M2SL</code>). Monthly, Jan 1971&ndash;Jul 2026.</span></li>
+    <li><b>Gold</b><span>Long monthly gold price series (London fix lineage, 1833&ndash;2026 via the datahub &ldquo;gold-prices&rdquo; dataset). Money aggregates from FRED.</span></li>
+    <li><b>Equities</b><span>S&amp;P 500 price index (Norgate, monthly close, 1971&ndash;2026). Price-only, so equity totals understate real returns by the dividend yield &mdash; it doesn&rsquo;t change the sign of a near-zero correlation.</span></li>
+    <li><b>Forward test</b><span>Deciles of the 1-month-lagged ratio vs. gold/S&amp;P returns 12, 36, 60 months out; Spearman rank correlation. Overlapping windows are autocorrelated, so treat these as descriptive &mdash; the monthly timing test is the clean read.</span></li>
+    <li><b>Timing</b><span>Long the asset when the lagged ratio &le; its expanding median, else cash; 60-month warm-up; 1976&ndash;2026. CAGR / max drawdown / monthly Sharpe.</span></li>
+    <li><b>Caveat</b><span>Only ~2 independent &ldquo;extreme ratio&rdquo; episodes exist since 1971 (1980, and partially 2011/2020), so the <em>magnitude</em> is uncertain even where the sign is not.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes gold a bad thing to own, or the worry about debt and debasement invalid &mdash; reasonable people hold gold for exactly those reasons. It just means this particular chart isn&rsquo;t the timing device it&rsquo;s presented as. &ldquo;Record 171%&rdquo; is a headline; &ldquo;median, and historically a top signal&rdquo; is what the data says. One rabbit hole deeper, the reset keeps not arriving on cue.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis, code, and data pipeline by <b style="color:var(--ink-2)">@droskill</b>. Gold and money-supply series from FRED; equity index and constituency data from Norgate Data. Study in Python (pandas) with cross-checks in RealTest.</div>
+  <p class="disc">For research and education only. Backtested results are hypothetical, do not reflect trading costs in full, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('goldcov-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('goldcov-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('[data-tip]').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- line chart (supports a horizontal reference line + point markers) ----------
+function lineChart(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var pts=opts.points, ymax=opts.ymax, ymin=opts.ymin||0, unit=opts.unit||'%';
+  var W=920,H=360,mL=46,mR=16,mT=18,mB=40, pw=W-mL-mR, ph=H-mT-mB;
+  var xs=pts.map(function(p){return p[0];}), x0=Math.min.apply(null,xs), x1=Math.max.apply(null,xs);
+  var x=function(v){return mL+(v-x0)/(x1-x0)*pw;};
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), gold=cssvar('--gold'), safe=cssvar('--safe');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  var step=opts.ystep||20;
+  for(var g=ymin; g<=ymax+0.001; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g+'%</text>';
+  }
+  // x labels (decade ticks)
+  [1971,1980,1990,2000,2010,2020,2026].forEach(function(t){
+    svg+='<text x="'+x(t)+'" y="'+(H-mB+24)+'" fill="'+muted+'" font-size="12" text-anchor="middle">'+t+'</text>';
+  });
+  // median reference line
+  if(opts.href!=null){
+    var hy=y(opts.href);
+    svg+='<line x1="'+mL+'" y1="'+hy+'" x2="'+(W-mR)+'" y2="'+hy+'" stroke="'+safe+'" stroke-width="1.2" stroke-dasharray="5 5"/>';
+    svg+='<text x="'+(mL+8)+'" y="'+(hy-7)+'" fill="'+safe+'" font-size="12" text-anchor="start">'+opts.hlabel+'</text>';
+  }
+  // area + path
+  var d='';pts.forEach(function(p,i){d+=(i?'L':'M')+x(p[0]).toFixed(1)+' '+y(p[1]).toFixed(1)+' ';});
+  svg+='<path d="'+d+'" fill="none" stroke="'+gold+'" stroke-width="2.4" stroke-linejoin="round"/>';
+  // markers on notable points
+  (opts.marks||[]).forEach(function(m){
+    var mx=x(m.x),my=y(m.y);
+    svg+='<circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="4.5" fill="'+gold+'" stroke="'+cssvar('--surface')+'" stroke-width="1.5" data-tip="'+m.tip+'"/>';
+    svg+='<text x="'+mx.toFixed(1)+'" y="'+(my+m.dy)+'" fill="'+cssvar('--ink-2')+'" font-size="12" text-anchor="'+(m.anchor||'middle')+'">'+m.label+'</text>';
+  });
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- grouped bars WITH negative support ----------
+function groupedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, series=opts.series, ymax=opts.ymax, ymin=opts.ymin||0, unit=opts.unit||'%';
+  var W=920,H=360,mL=44,mR=14,mT=20,mB=46, pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  var step=opts.ystep||10;
+  for(var g=ymin; g<=ymax+0.001; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g+'</text>';
+  }
+  var yzero=y(0);
+  svg+='<line x1="'+mL+'" y1="'+yzero+'" x2="'+(W-mR)+'" y2="'+yzero+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, ns=series.length;
+  var pad=gw*0.18, inner=gw-2*pad, bw=Math.min(inner/ns-4, 40);
+  var totalBars=ns*bw+(ns-1)*4, startOff=(gw-totalBars)/2;
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw;
+    svg+='<text x="'+(gx+gw/2)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+    for(var s=0;s<ns;s++){
+      var v=series[s].values[i], bx=gx+startOff+s*(bw+4);
+      var by=Math.min(y(v),yzero), bh=Math.abs(y(v)-yzero);
+      var col=cssvar(series[s].colorVar);
+      svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(bh,0.5).toFixed(1)+'" rx="3" fill="'+col+'" '
+         +'data-tip="'+cats[i]+' &middot; '+series[s].name+': <b>'+(v>=0?'+':'')+v.toFixed(1)+unit+'</b>"></rect>';
+      var ly=v>=0?(by-6):(by+bh+14);
+      svg+='<text x="'+(bx+bw/2)+'" y="'+ly+'" fill="'+col+'" font-size="12" font-weight="600" text-anchor="middle">'+(v>=0?'+':'')+v.toFixed(0)+'</text>';
+    }
+  }
+  // axis hint
+  svg+='<text x="'+mL+'" y="'+(H-6)+'" fill="'+muted+'" font-size="11" text-anchor="start">&larr; cheaper ratio</text>';
+  svg+='<text x="'+(W-mR)+'" y="'+(H-6)+'" fill="'+muted+'" font-size="11" text-anchor="end">richer ratio &rarr;</text>';
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+function drawAll(){
+  lineChart('#chartLine',{
+    aria:'US gold reserves as a share of the monetary base, 1971 to 2026',
+    ymin:0, ymax:120, ystep:20, href:19,
+    hlabel:'54-yr median ~19%',
+    points:[[1971,13],[1972,18.3],[1973,28],[1974,44.3],[1975,32.1],[1976,29.1],[1977,32.2],[1978,37.6],[1979,75.9],[1980,86.1],[1981,62.8],[1982,64.4],[1983,52.8],[1984,40.9],[1985,37.5],[1986,41.1],[1987,47.6],[1988,38.6],[1989,36.4],[1990,31.3],[1991,28.2],[1992,24.2],[1993,25.1],[1994,23.1],[1995,22.7],[1996,20.8],[1997,15.3],[1998,14.5],[1999,12.1],[2000,11.8],[2001,11.1],[2002,12.4],[2003,14.4],[2004,14.9],[2005,16.6],[2006,19.9],[2007,25.1],[2008,12.8],[2009,14.6],[2010,18],[2011,16.4],[2012,16.5],[2013,8.6],[2014,8],[2015,7.3],[2016,8.6],[2017,8.6],[2018,9.6],[2019,11.3],[2020,9.3],[2021,7.3],[2022,8.7],[2023,9.1],[2024,12.4],[2025,21],[2026,19.3]],
+    marks:[
+      {x:1980,y:86.1,label:'Jan 1980 peak ~113%',dy:-12,anchor:'middle',tip:'Year-end 1980: 86% &middot; monthly peak Jan 1980: ~113%'},
+      {x:2026,y:19.3,label:'today ~19%',dy:-12,anchor:'end',tip:'Jul 2026: 19.3% of the monetary base'}
+    ]});
+  groupedBars('#chartDec',{
+    cats:['1','2','3','4','5','6','7','8','9','10'], ymin:-6, ymax:24, ystep:6,
+    aria:'Next-12-month return of gold and the S&P 500 by coverage-ratio decile',
+    series:[
+      {name:'Gold +12mo',colorVar:'--gold',values:[2.6,14.2,18.8,22.3,12.6,9.3,11.9,14.5,13.2,-3.1]},
+      {name:'S&P 500 +12mo',colorVar:'--spx',values:[5.7,14.8,5.1,11.5,13.0,13.8,-2.7,6.6,15.8,10.9]}
+    ]});
+}
+drawAll();
+addEventListener('resize',function(){/* svg responsive via viewBox */});
+</script>
+</body>
+</html>

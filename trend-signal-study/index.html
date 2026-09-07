@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Price, or Slope? The Trend Signal You Pick Is a Dial</title>
+<meta name="description" content="A companion study found price-vs-MA and MA-slope are different trend signals. Applied Faber-style to a diversified basket over 1988-2026, the slope rule keeps 94% of buy-and-hold's return at a third of the drawdown - and which signal wins is a regime choice, not an edge.">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Price, or slope? The trend signal you pick is a dial, not an edge.">
+<meta property="og:description" content="On a diversified basket 1988-2026, MA-slope timing keeps 94% of buy-and-hold's return at a third of the drawdown, and beats the price cross in 3 of 4 decades. A Faber extension.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/trend-signal-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Price, or slope? The trend signal you pick is a dial.">
+<meta name="twitter:description" content="Price-cross vs MA-slope on a diversified basket: a tunable return/drawdown frontier, and a regime-dependent winner. Survivorship-free, 38 years.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/trend-signal-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+header{padding:60px 0 26px}
+.eyebrow{font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;}
+h1{font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;}
+.byline{display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);}
+.byline b{color:var(--ink-2); font-weight:500}
+section{padding:14px 0}
+h2{font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;}
+h2 .num{font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;}
+p{margin:0 0 20px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+.tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;}
+.tile{background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);}
+.tile .lab{font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;}
+.tile .big{font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+figure{margin:34px 0;}
+@media(min-width:940px){.breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}}
+.card{background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);}
+.card h3{margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.card img{width:100%; height:auto; display:block; border-radius:8px; border:1px solid var(--hair)}
+figcaption{font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding-bottom:12px;}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--pos); font-weight:600}
+td.lo{color:var(--claim); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--pos) 10%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--pos) 15%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+.callout{border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0; box-shadow:var(--shadow);}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+.method{background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+.toggle{position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); font-size:16px;}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+#tip{position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A trend-following rabbit hole · Sep 2026</p>
+  <h1>Price, or <em>slope?</em></h1>
+  <p class="dek">There are two ways to time a market with a moving average: is price <em>above the line</em>, or is the <em>line itself rising</em>? Everyone treats them as the same thing. A companion study made me doubt that &mdash; so I ran both, Faber-style, across a diversified basket back to 1988. They&rsquo;re genuinely different, and the difference turns out to be a dial you can tune, not an edge you either have or don&rsquo;t.</p>
+  <div class="byline">
+    <span><b>Bento Analytics</b></span>
+    <span>US multi-asset basket</span>
+    <span>1988&ndash;2026</span>
+    <span>Norgate + FRED</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Quick backstory. In a <a href="../weinstein-stage-study/">companion piece on Weinstein stage analysis</a>, I noticed that two trend signals people use interchangeably don&rsquo;t actually behave the same. &ldquo;Price above its moving average&rdquo; reacts to price, so it exits fast in a selloff &mdash; shallow drawdowns, but it whipsaws in chop. &ldquo;The moving average is rising&rdquo; reacts to a smoothed line that lags, so it holds through shallow dips &mdash; more return, but it exits late. Fast versus slow. Same family, different personality.</p>
+  <p>Mebane Faber&rsquo;s classic tactical-allocation rule uses the first one (price vs the 10-month average) on a basket of asset classes, holding cash when a sleeve is below its line. So the natural question: on a <em>diversified</em> basket, does the choice of signal matter &mdash; and can the slower, slope-based one give you a genuine middle ground between buy-and-hold and a hard filter?</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">MA-slope timing · CAGR</p>
+      <div class="big c-pos">7.7<span style="font-size:.5em">%</span></div>
+      <p class="sub">Per year, 1988&ndash;2026 &mdash; <strong>94%</strong> of buy-and-hold&rsquo;s 8.2%. You barely give up return.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">…at this drawdown</p>
+      <div class="big c-safe">&minus;10<span style="font-size:.5em">%</span></div>
+      <p class="sub">Worst drawdown vs buy-and-hold&rsquo;s &minus;29%. A third of the pain for nearly all the gain.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Slope beats price-cross</p>
+      <div class="big c-claim">3 of 4</div>
+      <p class="sub">Decades (1990s/2000s/2010s), at the 10-month average. It loses only the sharp-reversal 2020s.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>Two signals, one spectrum</h2>
+  <p>Picture the same uptrend interrupted by a two-week dip. The price cross sees price poke below the average and steps out; if the dip was noise, it buys back higher &mdash; a whipsaw. The slope rule doesn&rsquo;t care about a two-week dip; the 10-month average is still grinding upward, so it holds. Now picture a real top. The price cross is already out (price broke the line weeks ago); the slope rule waits for the average itself to roll over, so it exits later and eats more of the decline. Fast and twitchy versus slow and patient. Neither is &ldquo;right&rdquo; &mdash; they&rsquo;re two settings on a responsiveness dial, and the whole question is which setting a diversified investor wants.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">02</span>The recent decade said: a wash</h2>
+  <p>My first cut used ETF baskets, which only go back to about 2007. Over that window the answer was deflating: price and slope were a near-tie, and <em>every</em> timing rule gave up return versus buy-and-hold while cutting drawdown. No free lunch, no clear winner between the signals &mdash; exactly the &ldquo;these two rules are basically the same&rdquo; result the academic literature reports on single indices. If I&rsquo;d stopped there, the story would&rsquo;ve been &ldquo;doesn&rsquo;t matter, pick either.&rdquo; But 2007&ndash;2026 is a short, weird window &mdash; it happens to punish diversified and commodity exposure against US stocks. I needed more history.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">03</span>The long view flips it</h2>
+  <p>So I rebuilt the basket on long-history total-return data &mdash; US large- and small-cap equity, intermediate and long Treasuries (synthesized from Fed yield data), and commodities &mdash; back to 1988. Thirty-eight years, several genuine regimes. And the picture opens right up. The slope rule now clearly beats the price cross (7.7% vs 6.9% a year, a better Sharpe too), and the timing rules trace a smooth frontier: buy-and-hold up top with its brutal &minus;29% drawdown, then slope, graded, and the conjunction stepping down to gentler and gentler risk. The middle ground I was hoping for is right there &mdash; slope keeps 94% of the return for a third of the drawdown.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Timing rules on the long basket · 1988&ndash;2026 · monthly · 10-month MA · net of costs</caption>
+      <thead>
+        <tr><th>Rule</th><th>Invested</th><th>CAGR</th><th>Sharpe</th><th>Max DD</th><th>MAR</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Buy &amp; hold</td><td>100%</td><td>8.2%</td><td>0.94</td><td class="lo">&minus;29%</td><td>0.29</td></tr>
+        <tr><td>Price &gt; MA</td><td>69%</td><td>6.9%</td><td>1.09</td><td>&minus;9%</td><td>0.79</td></tr>
+        <tr class="mark"><td>MA slope rising</td><td>71%</td><td>7.7%</td><td>1.20</td><td>&minus;10%</td><td>0.76</td></tr>
+        <tr><td>Both (AND)</td><td>62%</td><td>7.0%</td><td>1.19</td><td class="hi">&minus;8%</td><td>0.92</td></tr>
+        <tr><td>Graded (0/½/1)</td><td>70%</td><td>7.3%</td><td>1.19</td><td>&minus;8%</td><td>0.89</td></tr>
+        <tr><td>Blend (50/50)</td><td>84%</td><td>7.6%</td><td>1.09</td><td>&minus;17%</td><td>0.46</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The return / drawdown frontier</h3>
+    <p class="csub">long basket · 1988&ndash;2026 · up-and-left is better (more return, less drawdown)</p>
+    <img src="frontier.png" alt="Scatter of CAGR versus max drawdown for each timing rule on the long basket">
+  </div>
+  <figcaption>Slope, graded, and the conjunction sit on the efficient edge; the price cross and the naive 50/50 blend are <em>dominated</em> (something offers more return at less drawdown). You pick your point on the curve &mdash; that&rsquo;s the dial.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">04</span>&ldquo;Isn&rsquo;t that just the bond bull?&rdquo;</h2>
+  <p>Fair challenge &mdash; the basket holds Treasuries, and 1988&ndash;2020 was one long bond rally, which a slow slope rule would happily ride. So I tested it. I dropped the long-Treasury sleeve entirely, and re-weighted so bonds are only a third of the book. The slope edge didn&rsquo;t shrink &mdash; it <em>grew</em> (the biggest gap of all shows up in the version with the <em>least</em> bonds). It also survives higher trading costs, actually widening as costs rise. So it isn&rsquo;t a bond artifact and it isn&rsquo;t a low-turnover trick.</p>
+  <p>There <em>is</em> one real boundary, though, and it&rsquo;s a nice confirmation of the mechanism: the slope edge only exists with a slow enough average. At 10&ndash;12 months slope wins; at 6&ndash;8 months the ranking flips and the price cross wins. Makes sense &mdash; a fast average leaves no room for slope&rsquo;s &ldquo;hold through the dip&rdquo; advantage, because the average itself is twitching along with price.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Slope minus price-cross, by moving-average length</h3>
+    <p class="csub">long basket · annual return gap (percentage points) · positive = slope wins</p>
+    <div class="chart" id="chart_ma"></div>
+  </div>
+  <figcaption>The edge is bounded, not universal: negative at 6&ndash;8 months, positive at the conventional 10&ndash;12. That sign flip is the responsiveness mechanism showing up in the data &mdash; slope needs a slow average to have anything to add.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">05</span>Slope for trends, price for reversals</h2>
+  <p>Split the record by decade and the personality of each signal jumps out. Slope wins the long, trending 1990s, 2000s, and 2010s. Price wins the 2020s &mdash; the era of the fastest reversals on record (the 2020 crash-and-rip, the 2022 grind), exactly where a fast exit is worth more than a patient one. This is the honest headline: which signal wins is <em>regime-dependent</em>. That&rsquo;s not a bug in the finding &mdash; it&rsquo;s the finding.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Slope minus price-cross, by decade</h3>
+    <p class="csub">long basket · annual return gap (percentage points) · 10-month MA</p>
+    <div class="chart" id="chart_dec"></div>
+  </div>
+  <figcaption>Three green decades of long smooth trends, one red decade of sharp reversals. The slope rule isn&rsquo;t better or worse than the price cross in the abstract &mdash; it&rsquo;s better matched to some regimes than others.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">06</span>So what do you actually do?</h2>
+  <p>Treat the trend signal as a setting, not a secret. If you&rsquo;re timing a diversified basket, the first-order effect is drawdown reduction &mdash; any moving-average rule keeps most of buy-and-hold&rsquo;s return while cutting the drawdown by half or more. <em>Where</em> you sit is your choice: the slower slope rule if you want to stay closer to buy-and-hold&rsquo;s return in long trends (the better default at 10&ndash;12 months), the faster price cross if you prize shallow drawdowns and expect sharp reversals, or the graded blend of the two for a point in between. What you shouldn&rsquo;t do is agonize over which is &ldquo;the&rdquo; trend signal, or expect either to be free money. It&rsquo;s a dial. Set it to the regime.</p>
+
+  <div class="callout">
+    <p>On a diversified basket, price-cross and slope aren&rsquo;t rivals &mdash; they&rsquo;re two ends of a responsiveness dial that keep most of buy-and-hold&rsquo;s return at a fraction of its drawdown. Slope for smooth trends, price for sharp reversals.</p>
+    <span class="who">A Faber rule, one knob turned.</span>
+  </div>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Basket</b><span>US multi-asset, long total-return history: large-cap (<code>$SPXTR</code>) and small-cap (<code>$RUTTR</code>) equity, intermediate and long Treasuries, commodities (<code>$SPGSCI</code>). Trades the international/REIT breadth of the ETF version for 38 years of depth.</span></li>
+    <li><b>Bonds</b><span>Treasury total return synthesized from FRED constant-maturity yields (DGS10, DGS30) by the standard par-bond carry + duration/convexity approximation. Cash earns the 3-month T-bill.</span></li>
+    <li><b>Rules</b><span>Each sleeve timed independently, 1/N of capital when held, rest in cash. <code>PRICE</code> = price&nbsp;&gt;&nbsp;10-mo MA; <code>SLOPE</code> = MA rising; <code>BOTH</code> = both; <code>GRADED</code> = 0/½/1 by how many hold; <code>BLEND</code> = 50% buy-and-hold + 50% price. Monthly, signals through month <em>t</em> earn month <em>t</em>+1, 5&nbsp;bps/side.</span></li>
+    <li><b>Robustness</b><span>Slope&nbsp;&gt;&nbsp;price holds across three basket compositions (and strengthens with bonds removed), widens with costs, and wins 3 of 4 decades &mdash; but only at 10&ndash;12-month averages; at 6&ndash;8 months it flips.</span></li>
+    <li><b>Companion</b><span>Builds on <a href="../weinstein-stage-study/">&ldquo;Does Weinstein stage analysis beat a moving average?&rdquo;</a>, where the same price-vs-slope distinction first showed up on individual stocks.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">Credit where it&rsquo;s due: Faber&rsquo;s tactical rule is the jumping-off point, and it holds up &mdash; timing a diversified basket really does trade a little return for a lot less drawdown. The only refinement here is to notice that the <em>knob</em> on that rule &mdash; price versus slope &mdash; is worth setting deliberately rather than by habit, and that the right setting depends on whether you expect trends or reversals. One good idea, one dial turned.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">Damian Roskill</b> (<b style="color:var(--ink-2)">Bento Analytics</b>), extending <b style="color:var(--ink-2)">Mebane Faber&rsquo;s</b> tactical-allocation rule. Total-return data from Norgate Data and FRED; analysis in Python.</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index and synthesized total-return data with modeled costs, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('trendsig-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('trendsig-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+function signedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, vals=opts.values, colors=opts.colors;
+  var ymin=opts.ymin, ymax=opts.ymax, step=opts.step, unit=opts.unit||'';
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(g>0?'+':'')+g.toFixed(1)+'</text>';
+  }
+  var y0=y(0);
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.5, 70);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+(v>0?'+':'')+v.toFixed(1)+unit+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+(v>0?'+':'')+v.toFixed(1)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+function drawAll(){
+  // MA-length: slope-minus-price CAGR gap (pp); flips negative at short MA
+  signedBars('#chart_ma',{
+    cats:['MA 6','MA 8','MA 10','MA 12'],
+    values:[-0.6,-0.1,0.8,0.4],
+    colors:['--claim','--claim','--pos','--pos'],
+    ymin:-1.0, ymax:1.0, step:0.5, unit:'pp',
+    aria:'Slope minus price return gap by moving-average length, negative at short lengths and positive at long'
+  });
+  // Decade: slope-minus-price CAGR gap (pp); 3 green, 2020s red
+  signedBars('#chart_dec',{
+    cats:['1990s','2000s','2010s','2020s'],
+    values:[0.8,0.6,1.4,-0.1],
+    colors:['--pos','--pos','--pos','--claim'],
+    ymin:-0.5, ymax:2.0, step:0.5, unit:'pp',
+    aria:'Slope minus price return gap by decade, positive in the 1990s through 2010s and slightly negative in the 2020s'
+  });
+}
+drawAll();
+addEventListener('resize',function(){});
+</script>
+</body>
+</html>
