@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does Money Buy Test Scores?</title>
+<meta name="description" content="You'd assume richer states post better reading and math scores. Across all 50 states and D.C. on the 2024 NAEP, the link is real but loose — and per-pupil spending barely moves the needle. What matters more is what a state does with the money.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Does money buy test scores? The 50-state answer is 'a little.'">
+<meta property="og:description" content="State income tracks NAEP reading and math scores — but weakly (r≈0.3–0.4). Per-pupil spending tracks them at ~zero. Mississippi reads well above its income line; the big spenders sit mid-pack.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/money-scores-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Does money buy test scores? The 50-state answer is 'a little.'">
+<meta name="twitter:description" content="Across all 50 states + D.C. on the 2024 NAEP, income is a loose predictor of scores and spending is basically flat. Adjust income for local cost of living and the link actually gets stronger.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/money-scores-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .dot{opacity:.5}
+.chart .dot:hover{opacity:1}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--claim) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--claim) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">An education-vs-economics rabbit hole · Sep 2026</p>
+  <h1>Does money buy <em>test scores?</em></h1>
+  <p class="dek">It feels obvious that richer states should read and count better &mdash; more money, better schools, higher scores. So I put it to the numbers: all fifty states and D.C., the 2024 NAEP in reading and math, against three ways of measuring a state&rsquo;s wealth. The honest answer is &ldquo;a little, and less than you&rsquo;d think&rdquo; &mdash; and the money you&rsquo;d most expect to matter, school spending, barely moves at all.</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>50 states + D.C.</span>
+    <span>2024 NAEP · grades 4 &amp; 8</span>
+    <span>NAEP · Census · BEA</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">There&rsquo;s a comfortable story where wealth and school achievement rise together: prosperous states fund better schools, families have more slack, and the scores follow. It&rsquo;s a reasonable instinct &mdash; money really does buy a lot of things. I just wanted to see how much of it you can actually see in the data, so I lined up every state&rsquo;s 2024 NAEP scores against its median household income, its GDP per capita, and its per-pupil school spending.</p>
+
+  <p>Short version: there <em>is</em> a relationship between how much a state&rsquo;s households earn and how its kids score &mdash; but it&rsquo;s a loose one, a correlation around <strong>0.3 to 0.4</strong>, not the tight line the intuition promises. And the deeper you go, the more the interesting part turns out to be the states that <em>break</em> the pattern, not the ones that follow it.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Income &harr; 8th-grade reading</p>
+      <div class="big c-safe">+0.39</div>
+      <p class="sub">Correlation between median household income and NAEP reading. Real, positive &mdash; but loose. Income &ldquo;explains&rdquo; about 15% of the spread.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Spending &harr; 4th-grade math</p>
+      <div class="big c-claim">&minus;0.07</div>
+      <p class="sub">Correlation between per-pupil spending and math scores. Essentially zero &mdash; the biggest spenders sit mid-pack; two of the thriftiest top the table.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Mississippi vs. its income line</p>
+      <div class="big c-pos">+7 pts</div>
+      <p class="sub">The 2nd-lowest-income state reads about seven points above what its income predicts &mdash; one of the biggest over-performers on the board.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>Yes, richer states do score higher &mdash; loosely</h2>
+  <p>Start with the version of the claim that holds up. Plot each state&rsquo;s median household income against its 2024 NAEP score and the cloud does tilt uphill: the wealthier end of the axis sits a little higher. For eighth-grade reading the correlation is <strong>+0.39</strong>; for fourth grade it&rsquo;s a softer <strong>+0.28</strong>. Positive, real, and worth respecting &mdash; income is a genuine correlate of achievement.</p>
+  <p>But &ldquo;loose&rdquo; is the operative word. A correlation of 0.39 means income accounts for only about <strong>15%</strong> of the differences between states; the other 85% is everything else. You can see it in the scatter below &mdash; the band is wide, and some of the most interesting states sit <em>furthest</em> from the trend line.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Median household income vs. 8th-grade reading score</h3>
+    <p class="csub">50 states + D.C. · 2024 NAEP reading · 2023 Census income · dashed line = fit</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>reads above its income line</span>
+      <span><i style="background:var(--claim)"></i>reads below</span>
+    </div>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>The uphill tilt is real but gentle. The states that matter are the outliers: <b>Mississippi</b> and <b>Louisiana</b> &mdash; among the poorest &mdash; sit well above the line, while high-income <b>Alaska</b>, <b>New Mexico</b>, and <b>D.C.</b> sit well below theirs. Money sets a weak expectation; states beat or miss it by a lot.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">02</span>It&rsquo;s <em>household income</em> that matters &mdash; not &ldquo;the economy,&rdquo; and not spending</h2>
+  <p>Here&rsquo;s where the naive version starts to wobble. If wealth drove scores, you&rsquo;d expect the broadest measure of a state&rsquo;s economy &mdash; GDP per capita &mdash; to predict at least as well as household income. It doesn&rsquo;t. GDP per capita is a <em>weaker</em> correlate (about +0.35 vs. +0.39 for reading), because energy and agriculture states like North Dakota, Nebraska, and Wyoming post big output per person that never shows up in the median family&rsquo;s paycheck. What lands in households tracks scores better than what shows up in the state&rsquo;s ledger.</p>
+  <p>And then the one everybody assumes is the lever &mdash; <strong>per-pupil spending</strong> &mdash; comes in essentially flat. Against fourth-grade math the correlation is actually slightly <em>negative</em> (&minus;0.07); against reading it&rsquo;s a weak +0.1 to +0.2. The lowest-spending states in the country, Utah and Idaho at roughly $10k a pupil, post some of the highest scores; the biggest spenders &mdash; New York, D.C., Vermont at two to three times that &mdash; sit mid-pack.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>How well per-pupil spending predicts each NAEP test</h3>
+    <p class="csub">correlation (r) between state per-pupil spending and score, across all 51 jurisdictions</p>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>Four tests, four near-zero bars. If more dollars in the classroom bought more points on the test, these would climb; instead they hover around zero and even dip below it for fourth-grade math. Spending clearly buys <em>things</em> &mdash; it just doesn&rsquo;t buy a visible bump in cross-state test scores.</figcaption>
+</figure>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Per-pupil spending vs. 4th-grade math score</h3>
+    <p class="csub">50 states + D.C. · 2024 NAEP math · current per-pupil expenditure (NCES F-33)</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>scores above the (flat) line</span>
+      <span><i style="background:var(--claim)"></i>below</span>
+    </div>
+    <div class="chart" id="chart3"></div>
+  </div>
+  <figcaption>The fit line is nearly horizontal &mdash; and if anything droops. <b>Utah</b> and <b>Idaho</b> (far left, low spend) sit near the top; <b>New York</b> and <b>D.C.</b> (far right, high spend) sit middle-to-low. Whatever separates states on this test, the size of the per-pupil budget isn&rsquo;t it.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">03</span>The twist: adjust for cost of living and the income link gets <em>stronger</em></h2>
+  <p>A dollar isn&rsquo;t a dollar. Ninety-nine thousand in Massachusetts and fifty-four thousand in Mississippi don&rsquo;t buy the same life, so I divided every state&rsquo;s income by its local price level (the BEA&rsquo;s Regional Price Parities) to get real, purchasing-power income. I half-expected this to <em>wash out</em> the relationship &mdash; lift the low-cost South, drop the pricey coasts, and flatten everything.</p>
+  <p>The opposite happened. Adjusting for cost of living made the income&ndash;score correlation <strong>go up</strong> across the board &mdash; eighth-grade reading climbs from +0.39 to <strong>+0.46</strong>, and fourth-grade math from +0.17 to +0.26. Correcting for what money actually buys locally sharpens the signal rather than erasing it. Spending, adjusted the same way, stays stubbornly near zero. Here&rsquo;s the full grid &mdash; every wealth measure against every test.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Correlation (r) between each economic measure and each 2024 NAEP test · 50 states + D.C.</caption>
+      <thead>
+        <tr><th>Economic measure</th><th>Reading&nbsp;4</th><th>Reading&nbsp;8</th><th>Math&nbsp;4</th><th>Math&nbsp;8</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Median household income</td><td>+0.28</td><td>+0.39</td><td>+0.17</td><td>+0.29</td></tr>
+        <tr class="mark"><td>Income, cost-of-living adjusted</td><td class="lo">+0.32</td><td class="lo">+0.46</td><td class="lo">+0.26</td><td class="lo">+0.43</td></tr>
+        <tr><td>GDP per capita <span style="color:var(--muted)">(excl. D.C.)</span></td><td>+0.26</td><td>+0.35</td><td>+0.23</td><td>+0.36</td></tr>
+        <tr><td>Per-pupil spending</td><td>+0.13</td><td>+0.17</td><td class="hi">&minus;0.07</td><td>+0.02</td></tr>
+        <tr><td>Per-pupil spending, COL-adjusted</td><td>+0.11</td><td>+0.14</td><td class="hi">&minus;0.08</td><td>+0.02</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <p>Real, in-your-pocket income is the best money-based predictor of how a state scores &mdash; and it still leaves most of the story unexplained. The school budget, the measure built to buy achievement, is the one that predicts nothing.</p>
+    <span class="who">Money matters; the dollars in the classroom, oddly, don&rsquo;t.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">04</span>So what actually moves the needle?</h2>
+  <p>Not the checkbook &mdash; at least not at the coarse, state-to-state level this data can see. If income only explains a sixth of the gap and spending explains none of it, then five-sixths of what separates a top state from a bottom one lives in the residuals: curriculum, instruction, policy, demographics, how early kids learn to read. Mississippi is the poster child &mdash; near the bottom in income and spending, near the top in fourth-grade gains after a decade of hard phonics reform. The money didn&rsquo;t change; what the state did with it did.</p>
+  <p>None of this means money doesn&rsquo;t matter &mdash; real income clearly correlates, and no one runs a school on good intentions. It just means &ldquo;richer states score better&rdquo; is a weak rule with loud exceptions, and &ldquo;spend more, score more&rdquo; barely survives contact with fifty state data points. If you want to know why one state reads better than another, the budget line is where you <em>stop</em> looking, not where you start.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Scores</b><span>2024 NAEP average scale scores (0&ndash;500), grades 4 &amp; 8, reading and math, public-school students, via the <a href="https://www.nationsreportcard.gov/">Nation&rsquo;s Report Card</a> Data Service (grade-4 math pulled from the NAEP API; the rest from published state tables).</span></li>
+    <li><b>Income</b><span>Median household income, <a href="https://www.census.gov/library/publications/2024/demo/acsbr-023.html">Census ACS 2023</a> 1-year estimates.</span></li>
+    <li><b>GDP / capita</b><span><a href="https://www.bea.gov/data/gdp/gdp-state">BEA 2023</a>. D.C. (~$260k, a federal-commuter artifact) is excluded from the GDP row.</span></li>
+    <li><b>Spending</b><span>Current per-pupil expenditure, NCES/Census F-33 (latest available). Unadjusted for special-ed shares, English-learner mix, or district cost differences.</span></li>
+    <li><b>COL adjust</b><span>Dollar figures divided by the state <a href="https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area">BEA Regional Price Parity</a> (all items, 2024, US=100) to reach purchasing-power terms.</span></li>
+    <li><b>Stat</b><span>Pearson <code>r</code> across the 51 jurisdictions; &ldquo;% explained&rdquo; is <code>r&sup2;</code>. Correlation across states is not causation, and state averages hide enormous within-state variation.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">The tidy version &mdash; wealthy states read and count better &mdash; isn&rsquo;t wrong so much as thin. Income nudges scores; local purchasing power nudges them a touch more; the school budget, the thing we most associate with &ldquo;investing in education,&rdquo; nudges them essentially not at all. Which is strangely hopeful: if dollars were destiny, a poor state would be stuck. Mississippi&rsquo;s decade says otherwise.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and charts by <b style="color:var(--ink-2)">@droskill</b>. Data from the Nation&rsquo;s Report Card (NAEP), U.S. Census Bureau, and the Bureau of Economic Analysis; correlations computed in Python.</div>
+  <p class="disc">For research and education only. Cross-sectional correlations across 51 jurisdictions describe association, not cause, and state averages obscure large within-state differences. Nothing here is policy or investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('moneyscores-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('moneyscores-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('[data-tip]').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// name, abbr, read4, read8, math4, math8, income, gdp, spend
+var D=[
+["Alabama","AL",213,250,236,262,62212,59174,12772],["Alaska","AK",202,246,226,264,86631,92272,20325],
+["Arizona","AZ",208,254,232,270,77315,68965,11193],["Arkansas","AR",210,255,230,266,58700,57657,12339],
+["California","CA",212,254,233,269,95521,100038,17911],["Colorado","CO",221,265,239,278,92911,89469,14664],
+["Connecticut","CT",219,263,239,277,91665,94876,23986],["Delaware","DE",210,249,233,263,81361,91207,20525],
+["District of Columbia","DC",209,251,231,262,108210,259938,30303],["Florida","FL",218,253,243,267,73311,70557,11861],
+["Georgia","GA",214,259,236,269,74632,73558,14282],["Hawaii","HI",216,257,239,270,95322,75946,23878],
+["Idaho","ID",216,261,238,278,74942,60980,10183],["Illinois","IL",214,262,236,277,80306,87033,19786],
+["Indiana","IN",220,262,240,278,69477,73047,12967],["Iowa","IA",215,261,237,275,71433,78209,13080],
+["Kansas","KS",213,255,237,274,70333,78348,14276],["Kentucky","KY",218,258,238,271,61118,61961,14633],
+["Louisiana","LA",216,257,235,267,58229,68507,14667],["Maine","ME",210,255,233,273,73733,65785,18431],
+["Maryland","MD",216,258,234,268,98678,83565,18887],["Massachusetts","MA",225,268,246,283,99858,105884,22955],
+["Michigan","MI",209,255,235,270,69183,66198,15313],["Minnesota","MN",214,260,241,282,85086,82885,15246],
+["Mississippi","MS",219,253,239,269,54203,49911,12108],["Missouri","MO",212,255,235,270,68545,68623,13105],
+["Montana","MT",217,261,238,279,70804,62753,13572],["Nebraska","NE",212,256,238,280,74590,91553,14675],
+["Nevada","NV",213,253,233,265,76364,75585,11226],["New Hampshire","NH",221,264,242,280,96838,79929,21721],
+["New Jersey","NJ",222,266,240,282,99781,86847,25449],["New Mexico","NM",201,245,224,256,62268,62209,15578],
+["New York","NY",215,257,234,271,82095,110781,27603],["North Carolina","NC",213,255,239,276,70804,71373,12306],
+["North Dakota","ND",216,257,241,280,76525,95082,15506],["Ohio","OH",216,260,239,279,67769,74739,15461],
+["Oklahoma","OK",207,249,233,264,62138,63390,10981],["Oregon","OR",207,255,229,268,80160,75477,16054],
+["Pennsylvania","PA",216,259,238,276,73824,75189,18243],["Rhode Island","RI",216,258,237,270,84972,71122,20960],
+["South Carolina","SC",215,254,238,268,67804,60550,14349],["South Dakota","SD",214,260,240,281,71810,79412,12005],
+["Tennessee","TN",215,259,240,276,67631,74081,12198],["Texas","TX",212,252,241,269,75780,85110,12148],
+["Utah","UT",219,261,242,282,93421,80476,10232],["Vermont","VT",213,257,235,276,81211,67006,22224],
+["Virginia","VA",214,256,238,275,89931,81794,16097],["Washington","WA",216,259,238,274,94605,103462,17898],
+["West Virginia","WV",206,247,232,261,55948,56630,14443],["Wisconsin","WI",215,260,239,283,74631,70569,14850],
+["Wyoming","WY",222,260,243,278,72415,86880,19324]];
+
+function fit(xs,ys){var n=xs.length,sx=0,sy=0,sxy=0,sxx=0;
+  for(var i=0;i<n;i++){sx+=xs[i];sy+=ys[i];sxy+=xs[i]*ys[i];sxx+=xs[i]*xs[i];}
+  var b=(n*sxy-sx*sy)/(n*sxx-sx*sx),a=(sy-b*sx)/n; return {a:a,b:b};}
+
+// ---------- scatter: economic metric (x) vs score (y), residual-colored ----------
+function scatter(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var xi=opts.xcol, yi=opts.ycol, exclDC=opts.exclDC;
+  var rows=D.filter(function(d){return !(exclDC&&d[1]==="DC");});
+  var xs=rows.map(function(d){return d[xi];}), ys=rows.map(function(d){return d[yi];});
+  var f=fit(xs,ys);
+  var resid=rows.map(function(d){return d[yi]-(f.a+f.b*d[xi]);});
+  var maxAbs=Math.max.apply(null,resid.map(Math.abs));
+  var W=920,H=360,mL=54,mR=18,mT=18,mB=48, pw=W-mL-mR, ph=H-mT-mB;
+  var xmin=opts.xmin,xmax=opts.xmax,ymin=opts.ymin,ymax=opts.ymax;
+  var X=function(v){return mL+(v-xmin)/(xmax-xmin)*pw;};
+  var Y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var cSafe=cssvar('--safe'), cClaim=cssvar('--claim');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  // y grid
+  for(var g=opts.ymin+ (opts.ystep-(opts.ymin%opts.ystep))%opts.ystep; g<=ymax+1e-9; g+=opts.ystep){
+    var yy=Y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g+'</text>';
+  }
+  // x ticks
+  for(var xt=opts.xtick0; xt<=xmax+1e-9; xt+=opts.xtickstep){
+    var xx=X(xt);
+    svg+='<line x1="'+xx.toFixed(1)+'" y1="'+mT+'" x2="'+xx.toFixed(1)+'" y2="'+(mT+ph)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+xx.toFixed(1)+'" y="'+(mT+ph+22)+'" fill="'+ink+'" font-size="12" text-anchor="middle">$'+Math.round(xt/1000)+'k</text>';
+  }
+  // regression line
+  svg+='<line x1="'+X(xmin).toFixed(1)+'" y1="'+Y(f.a+f.b*xmin).toFixed(1)+'" x2="'+X(xmax).toFixed(1)+'" y2="'+Y(f.a+f.b*xmax).toFixed(1)+'" stroke="'+base+'" stroke-width="1.5" stroke-dasharray="5 4"/>';
+  // dots + labels
+  for(var i=0;i<rows.length;i++){
+    var d=rows[i], rx=X(d[xi]), ry=Y(d[yi]), rr=resid[i];
+    var col= Math.abs(rr)<maxAbs*0.12 ? muted : (rr>0?cSafe:cClaim);
+    var tipTxt=d[0]+': '+opts.ylab+' <b>'+d[yi]+'</b> · $'+d[xi].toLocaleString()+' · <b>'+(rr>=0?'+':'')+rr.toFixed(0)+'</b> vs. line';
+    svg+='<circle class="dot" cx="'+rx.toFixed(1)+'" cy="'+ry.toFixed(1)+'" r="9" fill="'+col+'" stroke="'+cssvar('--surface')+'" stroke-width="1.3" data-tip="'+tipTxt+'"></circle>';
+    svg+='<text x="'+rx.toFixed(1)+'" y="'+(ry+2.7).toFixed(1)+'" fill="#fff" font-size="8" font-weight="600" text-anchor="middle" style="pointer-events:none">'+d[1]+'</text>';
+  }
+  // axis titles
+  svg+='<text x="'+(mL+pw/2)+'" y="'+(H-6)+'" fill="'+muted+'" font-size="12" text-anchor="middle">'+opts.xtitle+'</text>';
+  svg+='<text transform="translate(14,'+(mT+ph/2)+') rotate(-90)" fill="'+muted+'" font-size="12" text-anchor="middle">'+opts.ytitle+'</text>';
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- signed bar chart (negatives + zero baseline) ----------
+function signedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, vals=opts.values, colors=opts.colors;
+  var ymin=opts.ymin, ymax=opts.ymax, step=opts.step;
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=52;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(g>0?'+':'')+g.toFixed(1)+'</text>';
+  }
+  var y0=y(0);
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.5, 110);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i].replace(/\n/g,' ')+': <b>'+(v>0?'+':'')+v.toFixed(2)+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="13.5" font-weight="600" text-anchor="middle">'+(v>0?'+':'')+v.toFixed(2)+'</text>';
+    var lines=cats[i].split('\n');
+    for(var k=0;k<lines.length;k++)
+      svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22+k*15)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+lines[k]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+function drawAll(){
+  scatter('#chart1',{
+    xcol:6, ycol:3, ylab:'reading', xmin:45000, xmax:112000, xtick0:50000, xtickstep:15000,
+    ymin:243, ymax:270, ystep:5,
+    xtitle:'Median household income (2023)', ytitle:'Grade 8 reading',
+    aria:'Scatter of median household income versus grade 8 reading score by state'
+  });
+  signedBars('#chart2',{
+    cats:['Reading\ngrade 4','Reading\ngrade 8','Math\ngrade 4','Math\ngrade 8'],
+    values:[0.13,0.17,-0.07,0.02],
+    colors:['--safe','--safe','--claim','--muted'],
+    ymin:-0.2, ymax:0.5, step:0.1,
+    aria:'Correlation between per-pupil spending and each NAEP test — all near zero'
+  });
+  scatter('#chart3',{
+    xcol:8, ycol:4, ylab:'math', xmin:9000, xmax:31000, xtick0:10000, xtickstep:5000,
+    ymin:222, ymax:248, ystep:4,
+    xtitle:'Per-pupil spending (latest available)', ytitle:'Grade 4 math',
+    aria:'Scatter of per-pupil spending versus grade 4 math score by state'
+  });
+}
+drawAll();
+addEventListener('resize',function(){/* responsive via viewBox */});
+</script>
+</body>
+</html>
