@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does Housing Drive the Market?</title>
+<meta name="description" content="The old saying is that the housing market drives the economy. Chased through 40 years of data, the instinct is half right: housing busts drive recessions, but stock bull markets rarely need a housing boom, most bear markets sail right past housing, and the 'rates sink home prices' link is mostly a mirage.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Does housing drive the market? One saying, one rabbit hole deeper.">
+<meta property="og:description" content="Bull markets barely need a housing boom (the 1990s and 2010s prove it). Only one of five stock bears came with a housing bust — the one housing caused. And rising rates move home prices far less than the reflex assumes. What it means for today's rate scare.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/housing-market-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Does housing drive the market? One saying, one rabbit hole deeper.">
+<meta name="twitter:description" content="Stocks and housing correlate weakly (+0.22). Housing sits out most bear markets. The 'high rates = low home prices' link is a spurious co-trend. And bonds aren't hedging stocks right now.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/housing-market-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--claim) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--claim) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A housing-and-markets rabbit hole · Sep 2026</p>
+  <h1>Does housing <em>drive</em> the market?</h1>
+  <p class="dek">There&rsquo;s an old saying &mdash; &ldquo;the housing market drives the economy.&rdquo; It&rsquo;s repeated like a law of nature, and it points at something real. So I chased it through forty years of data: how tightly are stock bull markets tied to housing booms? Has there ever been a market boom with <em>no</em> housing boom? And what does any of it say about a rate scare today?</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>S&amp;P 500 · U.S. housing · rates</span>
+    <span>1954&ndash;2026</span>
+    <span>Norgate Data · FRED</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Credit where it&rsquo;s due: the saying is reaching for a genuine truth. Housing is the most interest-rate-sensitive, most leveraged, most cyclical corner of the economy, and residential investment is one of the most reliable <em>leading</em> indicators of recessions &mdash; the classic &ldquo;housing IS the business cycle&rdquo; result. When housing rolls over, the economy usually follows.</p>
+
+  <p>But notice the quiet leap between two different claims. &ldquo;Housing drives the <em>economy</em>&rdquo; is a statement about recessions. &ldquo;Housing drives the <em>stock market</em>&rdquo; is a different animal &mdash; and once you separate them, the tidy story comes apart in three interesting places. Bull markets barely need housing. Bear markets mostly ignore it. And the &ldquo;rates sink home prices&rdquo; reflex is largely a mirage.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Bull markets vs housing booms</p>
+      <div class="big c-safe">+0.22</div>
+      <p class="sub">Correlation of S&amp;P and national home-price growth (year-over-year, 1988&ndash;2026). Weakly positive &mdash; and near zero month to month.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Stock bears with a housing bust</p>
+      <div class="big c-claim">1 of 5</div>
+      <p class="sub">Only 2008 paired a stock bear with a housing decline &mdash; and that&rsquo;s the one housing <em>caused</em>. The other four, housing sailed through.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Do bonds hedge stocks today?</p>
+      <div class="big c-crit">+0.44</div>
+      <p class="sub">SPY&ndash;TLT correlation right now. Positive means bonds move <em>with</em> stocks &mdash; the opposite of the 2003&ndash;2020 hedge (&minus;0.35).</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>Bull markets barely need a housing boom</h2>
+  <p>Start with the headline question: are big stock bull markets tied to housing booms? Line up every major S&amp;P bull since 1988 next to what national home prices did over the same window &mdash; in <em>real</em> terms, so we&rsquo;re asking &ldquo;was there actually a housing boom?&rdquo; and not just measuring inflation. The answer is that stocks tower over housing in almost every one, and the biggest bulls of all came with housing going essentially nowhere.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Major S&amp;P bull markets vs national home prices · annualized</caption>
+      <thead>
+        <tr><th>Bull market</th><th>Years</th><th>S&amp;P CAGR</th><th>Home CAGR (real)</th></tr>
+      </thead>
+      <tbody>
+        <tr class="mark"><td>1990s / dot-com</td><td>12.7</td><td class="hi">+15.4%</td><td>+0.3%</td></tr>
+        <tr><td>2002&ndash;07 recovery</td><td>5.1</td><td>+13.5%</td><td class="lo">+4.0%</td></tr>
+        <tr class="mark"><td>2009&ndash;2020 (post-GFC)</td><td>11.0</td><td class="hi">+13.5%</td><td>+1.6%</td></tr>
+        <tr><td>COVID melt-up</td><td>1.8</td><td>+41.8%</td><td class="lo">+10.4%</td></tr>
+        <tr><td>2022&ndash;present</td><td>3.7</td><td>+21.8%</td><td>&minus;0.0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Stocks soared; housing mostly idled</h3>
+    <p class="csub">Annualized real return during each S&amp;P bull market</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>S&amp;P 500</span>
+      <span><i style="background:var(--claim)"></i>U.S. home prices (real)</span>
+    </div>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>The 1990s dot-com bull &mdash; the single biggest run in the sample &mdash; sat on top of housing that returned <strong>+0.3% a year</strong> in real terms. The 2009&ndash;2020 bull quadrupled stocks while homes gained +1.6%/yr. The only bull where housing kept pace was the COVID melt-up, when zero rates lifted everything at once. Three of five big bulls, including the two largest, had no housing boom at all.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>So &ldquo;market booms without housing booms&rdquo; aren&rsquo;t the exception &mdash; they&rsquo;re the norm. Stocks run on their own fuel: earnings, a new technology, multiple expansion, liquidity. None of it requires home prices to be rising. The full-sample correlation of the two growth rates is only <strong>+0.22</strong> year-over-year, and a rounding-error <strong>+0.06</strong> month to month. They share some common drivers &mdash; rates, credit, incomes &mdash; but they run on different clocks.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">02</span>Bear markets: housing mostly sits them out</h2>
+  <p>If the two were really joined at the hip, you&rsquo;d see it most clearly when stocks fall apart. Here the asymmetry is stark. Stocks have had five bear markets since 1988; national home prices, in nominal terms, have had exactly <em>one</em> drawdown in the whole span &mdash; the 2007&ndash;2012 bust. Lay the two underwater curves on top of each other and only one stock bear lines up with it.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Five stock bears, one housing bust &mdash; and only 2008 overlaps</h3>
+    <p class="csub">Drawdown from prior peak · 1987&ndash;2026</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>S&amp;P 500</span>
+      <span><i style="background:var(--claim)"></i>U.S. home prices (nominal)</span>
+    </div>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>Stocks (blue) plunge every few years and recover. Housing (orange) has one long, shallow-looking crater &mdash; the 2007&ndash;12 bust, &minus;27% and a decade to heal. In the dot-com bear stocks nearly halved while housing kept climbing; in 2020 and 2022 housing barely blinked. The one time they fell together, housing wasn&rsquo;t a bystander &mdash; it was the cause.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>The table underneath makes the point per episode. What housing did &ldquo;during&rdquo; each stock bear ranges from <strong>+18%</strong> (dot-com) to a barely-there dip &mdash; with 2008 the lone real decline.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>What national home prices did during each S&amp;P bear · nominal</caption>
+      <thead>
+        <tr><th>Bear market</th><th>S&amp;P</th><th>Home price</th><th>+24 mo after trough</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1990 recession</td><td>&minus;15%*</td><td>&minus;0.8%</td><td>&minus;0.4%</td></tr>
+        <tr><td>Dot-com bust</td><td>&minus;46%</td><td class="lo">+17.8%</td><td>+23.6%</td></tr>
+        <tr class="mark"><td>GFC / financial crisis</td><td>&minus;53%</td><td class="hi">&minus;16.8%</td><td>&minus;6.7%</td></tr>
+        <tr><td>COVID crash</td><td>&minus;13%*</td><td>+0.9%</td><td class="lo">+37.1%</td></tr>
+        <tr><td>2022 rate shock</td><td>&minus;25%</td><td>+7.8%</td><td>+8.1%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <p>The real structure isn&rsquo;t &ldquo;stocks and housing move together.&rdquo; It&rsquo;s directional: a housing bust reliably drags stocks down (2008), because homes are leveraged and central to the economy. But a stock bear does <em>not</em> imply a housing bust &mdash; equities fall on their own reasons, and housing, which never reprices daily, mostly waits it out.</p>
+    <span class="who">Housing busts drive recessions. Stock bears don&rsquo;t drive housing.</span>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted)">*COVID and 1990 look shallow because these are month-end marks; intramonth the S&amp;P fell about &minus;34% (2020) and &minus;20% (1990). It doesn&rsquo;t change the housing read.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">03</span>The &ldquo;rates sink home prices&rdquo; mirage</h2>
+  <p>If housing doesn&rsquo;t track stocks, maybe it tracks the thing everyone assumes rules it: interest rates. Higher rates, lower home prices &mdash; it feels obvious. And measured one way, it looks true: the correlation between the <em>level</em> of the mortgage rate and the <em>level</em> of home prices is about &minus;0.6. Case closed?</p>
+
+  <p>Not quite &mdash; that number is a trap. Rates fell for forty years while home prices rose for forty years; two things trending opposite ways correlate strongly <em>by construction</em>, with no causal link between them month to month. Switch from levels to <em>changes</em> &mdash; the honest question of &ldquo;when rates move, do home prices move the other way?&rdquo; &mdash; and the sign flips positive.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The negative link lives only in the levels</h3>
+    <p class="csub">Correlation of U.S. home prices with the mortgage rate, three ways</p>
+    <div class="chart" id="chart3"></div>
+  </div>
+  <figcaption>Measured as raw levels (left), the classic &minus;0.6 &mdash; but that&rsquo;s just two long trends crossing. Measured as year-over-year <em>changes</em> (middle), the correlation is <strong>positive</strong>: rising rates coincide with <em>faster</em> home-price growth, because both ride the business cycle together. And rate changes have essentially <em>zero</em> power to predict home-price growth a year out (right). The affordability channel is real but slow, and routinely swamped by incomes, credit, and supply.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>The mechanism is that rates hit housing <em>volume</em> far more than <em>price</em>. Nominal home prices are sticky &mdash; sellers won&rsquo;t cut, especially when a cheap mortgage locks them in place &mdash; so when rates spike, sales freeze instead of prices falling. That&rsquo;s exactly what 2022 was: mortgage rates roughly doubled, transactions collapsed, and prices merely stalled.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">04</span>So what does it mean for today?</h2>
+  <p>Here&rsquo;s where the rabbit hole earns its keep, because the worry of the moment is a rate scare: long yields drifting up, the Fed&rsquo;s next move a genuine coin flip &mdash; some think it&rsquo;s forced to hike, others think it holds. The intuition is that rising rates knock down both stocks and bonds until the Fed pivots. Two pieces of this study speak directly to that.</p>
+
+  <p><strong>First, the rate direction barely moves the equity odds.</strong> Sort every month since 1954 by its rate regime and look at the S&amp;P&rsquo;s <em>next</em> twelve months. Rising rates and Fed hikes shave a couple of points off and fatten the left tail &mdash; but they don&rsquo;t flip the base case negative. Stocks were still up about 70% of the time through hiking cycles. The genuinely bearish setup isn&rsquo;t a hike; it&rsquo;s a hike the long end <em>won&rsquo;t</em> follow &mdash; the curve flattening into inversion, the classic recession tell.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Rising rates dent the odds; they don&rsquo;t flip them</h3>
+    <p class="csub">Median forward 12-month S&amp;P return by rate regime · 1954&ndash;2026</p>
+    <div class="chart" id="chart4"></div>
+  </div>
+  <figcaption>Falling rates are the real tailwind (+14%). The scenario people fear &mdash; the Fed hiking <em>with</em> the long end rising (a &ldquo;bear steepener&rdquo;) &mdash; is actually one of the milder hiking cases (+10.7% median). The worst cell is the Fed hiking while the curve <em>flattens</em> (+6.9%). These are descriptive splits with overlapping windows, so trust the ranking more than the decimals.</figcaption>
+</figure>
+
+<section class="measure">
+  <p><strong>Second, and more reliably, bonds are not a hedge right now.</strong> The one high-confidence call here isn&rsquo;t about direction &mdash; it&rsquo;s about diversification. Stock/bond correlation, which was reliably <em>negative</em> from 2000&ndash;2020 (the era when 60/40 worked because bonds rallied as stocks fell), flipped <em>positive</em> in 2022 and sits around +0.3 to +0.4 today. It&rsquo;s an inflation-driven regime: when inflation is the market&rsquo;s worry, stocks and bonds fall together; only when <em>growth</em> fear takes over do bonds go back to hedging.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>We&rsquo;re back in the &ldquo;bonds don&rsquo;t hedge&rdquo; regime</h3>
+    <p class="csub">S&amp;P vs 10-yr Treasury, 36-month rolling correlation · 1958&ndash;2026</p>
+    <div class="chart" id="chart5"></div>
+  </div>
+  <figcaption>Positive (orange band) means stocks and bonds move together &mdash; bonds don&rsquo;t cushion equity drops. That was the 1970s&ndash;80s inflation era, and it&rsquo;s where we are again since 2022. The green stretch &mdash; the 2000&ndash;2020 disinflation &mdash; is the anomaly that trained a generation to expect bonds to hedge. In today&rsquo;s regime, whatever hits stocks is likely to hit bonds too, which is the part of the rate-scare thesis that holds up best.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>Put those together and the honest read of the rate scare is narrower than the full story. &ldquo;Rising rates will bring the market down&rdquo; is closer to a coin flip with a slight tilt than a bear signal. But &ldquo;bonds won&rsquo;t protect you in this regime&rdquo; is on solid ground &mdash; and it&rsquo;s true no matter which way the Fed jumps. For housing, a further leg up in mortgage rates just deepens the freeze: sticky prices, dead volume, no crash unless a jobs shock turns housing back into the epicenter.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">05</span>The honest bottom line</h2>
+  <p>The saying survives, but with its aim corrected. Housing <em>does</em> drive the economy in the one direction that matters most: a leveraged housing bust takes the economy &mdash; and the stock market &mdash; down with it. That&rsquo;s 2008, and it&rsquo;s worth respecting. But run the tape forward and back, and stock bull markets don&rsquo;t need housing booms (the 1990s and 2010s are proof), most bear markets leave housing untouched, and the reflex that rates dictate home prices is mostly a trick of trending data. The correlation people <em>feel</em> between housing and the market is largely one vivid memory &mdash; the housing-caused crash of 2008 &mdash; generalized into a rule the other forty years don&rsquo;t support.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Stocks</b><span>S&amp;P 500 (Norgate <code>$SPX</code>), month-end closes; bull/bear windows dated peak-to-trough on monthly data. Total-return ETFs (SPY, TLT) for the recent correlation.</span></li>
+    <li><b>Housing</b><span>Case-Shiller U.S. National Home Price Index (FRED <code>CSUSHPINSA</code>), monthly from 1987; real series deflated by CPI (<code>CPIAUCSL</code>).</span></li>
+    <li><b>Rates</b><span>Fed funds (<code>FEDFUNDS</code>), 10-yr Treasury (<code>GS10</code>), 30-yr mortgage (<code>MORTGAGE30US</code>) from FRED, month-end.</span></li>
+    <li><b>Correlations</b><span>Year-over-year and monthly-change correlations for stocks/housing/rates; 36-month rolling stock&ndash;bond correlation using a constant-maturity 10-yr total-return proxy (carry &minus; duration&times;&Delta;yield).</span></li>
+    <li><b>Forward returns</b><span>Every month 1954&ndash;2026 classified by trailing 6-mo change in fed funds and the 10-yr, then the S&amp;P&rsquo;s forward 12-month return. Descriptive, overlapping windows &mdash; observations, not independent trials.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes the old saying wrong to lean on &mdash; housing really is central to the economy, and watching it is watching the right thing. Chasing it one rabbit hole deeper just sharpens the <em>where</em>: housing drives the economy through its busts, not the bull market through its booms &mdash; and the thing to actually worry about today isn&rsquo;t housing at all, it&rsquo;s that the bonds meant to cushion a stock drop aren&rsquo;t doing that job in this regime.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">@droskill</b>. Stock and ETF prices from Norgate Data; housing, rate, and inflation data from FRED (Case-Shiller, U.S. Treasury, Freddie Mac); analysis in Python (norgatedata + pandas).</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index and total-return data, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('housingmkt-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('housingmkt-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- flexible vertical bars (signed or unsigned, zero baseline) ----------
+function vbars(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=o.cats, vals=o.values, colors=o.colors;
+  var ymin=o.ymin, ymax=o.ymax, step=o.step, dec=(o.dec==null?1:o.dec);
+  var unit=o.unit||'', sign=(o.sign!==false);
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  function fmt(v){return (sign&&v>0?'+':'')+v.toFixed(dec)+unit;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    var gl=(Math.abs(g-Math.round(g))<1e-9?g.toFixed(0):g.toFixed(dec<2?1:2));
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(sign&&g>0?'+':'')+gl+unit+'</text>';
+  }
+  var y0=y(Math.max(ymin,0));
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 66);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+fmt(v)+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+fmt(v)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- grouped bars (two series, unsigned) ----------
+function groupedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, series=opts.series, ymax=opts.ymax, ymin=opts.ymin||0, unit=opts.unit||'%';
+  var W=920,H=360,mL=44,mR=14,mT=20,mB=46, pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  var step=opts.ystep||10;
+  for(var g=ymin; g<=ymax+0.001; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g+unit+'</text>';
+  }
+  var yzero=y(0);
+  svg+='<line x1="'+mL+'" y1="'+yzero+'" x2="'+(W-mR)+'" y2="'+yzero+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, ns=series.length;
+  var inner=gw*0.64, bw=Math.min(inner/ns-4, 46);
+  var totalBars=ns*bw+(ns-1)*6, startOff=(gw-totalBars)/2;
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw;
+    svg+='<text x="'+(gx+gw/2)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+    for(var s=0;s<ns;s++){
+      var v=series[s].values[i], bx=gx+startOff+s*(bw+6);
+      var by=Math.min(y(v),yzero), bh=Math.abs(y(v)-yzero);
+      var col=cssvar(series[s].colorVar);
+      svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(bh,0.5).toFixed(1)+'" rx="3" fill="'+col+'" '
+         +'data-tip="'+cats[i]+' &middot; '+series[s].name+': <b>'+(v>=0?'+':'')+v.toFixed(1)+unit+'</b>"></rect>';
+      var ly=by-6;
+      svg+='<text x="'+(bx+bw/2)+'" y="'+ly+'" fill="'+col+'" font-size="12" font-weight="600" text-anchor="middle">'+(v>=0?'+':'')+v.toFixed(0)+'</text>';
+    }
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- time-series line(s) with zero baseline + optional era bands ----------
+function dualLine(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var series=o.series, ymin=o.ymin, ymax=o.ymax, step=o.ystep, unit=o.unit||'', ydec=(o.ydec==null?0:o.ydec);
+  var W=920,H=360,mL=48,mR=16,mT=18,mB=40, pw=W-mL-mR, ph=H-mT-mB;
+  var allx=[]; series.forEach(function(s){s.points.forEach(function(p){allx.push(p[0]);});});
+  var x0=Math.min.apply(null,allx), x1=Math.max.apply(null,allx);
+  var x=function(v){return mL+(v-x0)/(x1-x0)*pw;};
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  // era bands (drawn first, behind)
+  (o.bands||[]).forEach(function(b){
+    var bx=x(b.x0), bw=x(b.x1)-x(b.x0);
+    svg+='<rect x="'+bx.toFixed(1)+'" y="'+mT+'" width="'+bw.toFixed(1)+'" height="'+ph+'" fill="'+cssvar(b.colorVar)+'" opacity="'+(b.alpha||0.12)+'"/>';
+    if(b.label) svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(mT+16)+'" fill="'+cssvar(b.colorVar)+'" font-size="12" text-anchor="middle" opacity="0.85">'+b.label+'</text>';
+  });
+  // gridlines
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(o.sign&&g>0?'+':'')+g.toFixed(ydec)+unit+'</text>';
+  }
+  // zero baseline
+  if(ymin<0&&ymax>0){var yz=y(0); svg+='<line x1="'+mL+'" y1="'+yz.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yz.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';}
+  // x ticks
+  (o.xticks||[]).forEach(function(t){
+    svg+='<text x="'+x(t).toFixed(1)+'" y="'+(H-mB+24)+'" fill="'+muted+'" font-size="12" text-anchor="middle">'+t+'</text>';
+  });
+  // series paths
+  series.forEach(function(s){
+    var d=''; s.points.forEach(function(p,i){d+=(i?'L':'M')+x(p[0]).toFixed(1)+' '+y(p[1]).toFixed(1)+' ';});
+    svg+='<path d="'+d+'" fill="none" stroke="'+cssvar(s.colorVar)+'" stroke-width="'+(s.width||2.2)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+  svg+='</svg>';
+  el.innerHTML=svg;
+}
+
+function drawAll(){
+  // 01 — bulls: S&P CAGR vs real home CAGR
+  groupedBars('#chart1',{
+    cats:['1990s','2002–07','2009–20','COVID','2022–now'],
+    series:[
+      {name:'S&P 500', colorVar:'--safe', values:[15.4,13.5,13.5,41.8,21.8]},
+      {name:'Home (real)', colorVar:'--claim', values:[0.3,4.0,1.6,10.4,0.0]}
+    ],
+    ymin:0, ymax:45, ystep:15, unit:'%',
+    aria:'Annualized real return in each S&P bull market: stocks far above home prices except the COVID melt-up'
+  });
+
+  // 02 — underwater: stocks vs housing
+  dualLine('#chart2',{
+    series:[
+      {points:SPXDD, colorVar:'--safe', width:1.7},
+      {points:HPIDD, colorVar:'--claim', width:2.2}
+    ],
+    ymin:-60, ymax:5, ystep:15, unit:'%', ydec:0,
+    xticks:[1990,1995,2000,2005,2010,2015,2020,2025],
+    bands:[{x0:2007.8,x1:2012.2,colorVar:'--claim',alpha:0.10,label:'2008 housing bust'}],
+    aria:'Drawdown curves: five stock bears versus one housing drawdown, overlapping only in 2008'
+  });
+
+  // 03 — rates: levels vs changes vs forecast
+  vbars('#chart3',{
+    cats:['Levels (10-yr)','12-mo changes','Change → next-yr growth'],
+    values:[-0.64, 0.33, -0.01],
+    colors:['--crit','--pos','--muted'],
+    ymin:-0.8, ymax:0.4, step:0.2, unit:'', dec:2, sign:true,
+    aria:'Correlation of home prices with rates: negative only in levels, positive in changes, zero as a forecast'
+  });
+
+  // 04 — forward S&P return by rate regime
+  vbars('#chart4',{
+    cats:['10y falling','Base rate','Today','Scenario','Fed hiking','Hike+flatten'],
+    values:[14.1, 10.4, 9.0, 10.7, 8.4, 6.9],
+    colors:['--pos','--safe','--safe','--claim','--claim','--crit'],
+    ymin:0, ymax:15, step:5, unit:'%', dec:1, sign:false,
+    aria:'Median forward 12-month S&P return by rate regime; rising rates and hikes only modestly below the base rate'
+  });
+
+  // 05 — stock/bond correlation regime
+  dualLine('#chart5',{
+    series:[{points:CORR, colorVar:'--accent', width:2.2}],
+    ymin:-0.8, ymax:0.8, ystep:0.4, unit:'', ydec:1, sign:true,
+    xticks:[1960,1970,1980,1990,2000,2010,2020],
+    bands:[
+      {x0:2000.5,x1:2020.2,colorVar:'--pos',alpha:0.13,label:'bonds hedge'},
+      {x0:2022.0,x1:2026.7,colorVar:'--claim',alpha:0.15,label:'no hedge'}
+    ],
+    aria:'36-month rolling stock-bond correlation: negative and hedging 2000-2020, positive again since 2022'
+  });
+}
+
+// ---- chart data ----
+var SPXDD=[[1987.17,0.0],[1987.42,0.0],[1987.67,-2.4],[1987.92,-25.1],[1988.17,-21.5],[1988.42,-17.1],[1988.67,-17.6],[1988.92,-15.8],[1989.17,-10.6],[1989.42,-3.6],[1989.67,-0.7],[1989.92,0.0],[1990.17,-3.8],[1990.42,-0.9],[1990.67,-15.3],[1990.92,-8.6],[1991.17,0.0],[1991.42,-4.8],[1991.67,-1.9],[1991.92,0.0],[1992.17,-3.2],[1992.42,-2.1],[1992.67,-1.5],[1992.92,0.0],[1993.17,0.0],[1993.42,-0.3],[1993.67,-1.0],[1993.92,-0.3],[1994.17,-7.4],[1994.42,-7.8],[1994.67,-3.9],[1994.92,-4.6],[1995.17,0.0],[1995.42,0.0],[1995.67,0.0],[1995.92,0.0],[1996.17,0.0],[1996.42,0.0],[1996.67,0.0],[1996.92,-2.2],[1997.17,-4.3],[1997.42,0.0],[1997.67,-0.7],[1997.92,0.0],[1998.17,0.0],[1998.42,0.0],[1998.67,-10.3],[1998.92,0.0],[1999.17,0.0],[1999.42,0.0],[1999.67,-6.6],[1999.92,0.0],[2000.17,0.0],[2000.42,-2.9],[2000.67,-5.3],[2000.92,-13.0],[2001.17,-23.5],[2001.42,-19.3],[2001.67,-31.4],[2001.92,-24.4],[2002.17,-24.4],[2002.42,-34.8],[2002.67,-46.3],[2002.92,-42.0],[2003.17,-44.1],[2003.42,-35.8],[2003.67,-34.4],[2003.92,-26.7],[2004.17,-25.8],[2004.42,-24.8],[2004.67,-26.6],[2004.92,-20.1],[2005.17,-22.2],[2005.42,-21.5],[2005.67,-19.0],[2005.92,-17.8],[2006.17,-14.7],[2006.42,-16.3],[2006.67,-12.0],[2006.92,-6.5],[2007.17,-6.4],[2007.42,-1.8],[2007.67,-0.3],[2007.92,-5.2],[2008.17,-14.6],[2008.42,-17.4],[2008.67,-24.7],[2008.92,-41.7],[2009.17,-48.5],[2009.42,-40.7],[2009.67,-31.8],[2009.92,-28.0],[2010.17,-24.5],[2010.42,-33.5],[2010.67,-26.3],[2010.92,-18.8],[2011.17,-14.4],[2011.42,-14.8],[2011.67,-27.0],[2011.92,-18.8],[2012.17,-9.1],[2012.42,-12.1],[2012.67,-7.0],[2012.92,-8.0],[2013.17,0.0],[2013.42,-1.5],[2013.67,-0.2],[2013.92,0.0],[2014.17,0.0],[2014.42,0.0],[2014.67,-1.6],[2014.92,-0.4],[2015.17,-1.7],[2015.42,-2.1],[2015.67,-8.9],[2015.92,-3.0],[2016.17,-2.3],[2016.42,-0.4],[2016.67,-0.2],[2016.92,0.0],[2017.17,-0.0],[2017.42,0.0],[2017.67,0.0],[2017.92,0.0],[2018.17,-6.5],[2018.42,-3.7],[2018.67,0.0],[2018.92,-14.0],[2019.17,-2.7],[2019.42,-0.1],[2019.67,-0.1],[2019.92,0.0],[2020.17,-20.0],[2020.42,-4.0],[2020.67,-3.9],[2020.92,0.0],[2021.17,0.0],[2021.42,0.0],[2021.67,-4.8],[2021.92,0.0],[2022.17,-4.9],[2022.42,-20.6],[2022.67,-24.8],[2022.92,-19.4],[2023.17,-13.8],[2023.42,-6.6],[2023.67,-10.0],[2023.92,0.0],[2024.17,0.0],[2024.42,0.0],[2024.67,0.0],[2024.92,-2.5],[2025.17,-7.1],[2025.42,0.0],[2025.67,0.0],[2025.92,-0.1],[2026.17,-5.9],[2026.42,-1.1]];
+var HPIDD=[[1987.17,0.0],[1987.42,0.0],[1987.67,0.0],[1987.92,0.0],[1988.17,0.0],[1988.42,0.0],[1988.67,0.0],[1988.92,0.0],[1989.17,0.0],[1989.42,0.0],[1989.67,0.0],[1989.92,-0.0],[1990.17,0.0],[1990.42,0.0],[1990.67,-0.4],[1990.92,-2.0],[1991.17,-3.1],[1991.42,-1.7],[1991.67,-1.3],[1991.92,-2.2],[1992.17,-2.2],[1992.42,-1.2],[1992.67,-1.2],[1992.92,-1.4],[1993.17,-1.5],[1993.42,-0.1],[1993.67,0.0],[1993.92,-0.1],[1994.17,0.0],[1994.42,0.0],[1994.67,0.0],[1994.92,-0.3],[1995.17,-0.3],[1995.42,0.0],[1995.67,0.0],[1995.92,-0.3],[1996.17,-0.1],[1996.42,0.0],[1996.67,0.0],[1996.92,-0.3],[1997.17,0.0],[1997.42,0.0],[1997.67,0.0],[1997.92,0.0],[1998.17,0.0],[1998.42,0.0],[1998.67,0.0],[1998.92,0.0],[1999.17,0.0],[1999.42,0.0],[1999.67,0.0],[1999.92,0.0],[2000.17,0.0],[2000.42,0.0],[2000.67,0.0],[2000.92,0.0],[2001.17,0.0],[2001.42,0.0],[2001.67,0.0],[2001.92,0.0],[2002.17,0.0],[2002.42,0.0],[2002.67,0.0],[2002.92,0.0],[2003.17,0.0],[2003.42,0.0],[2003.67,0.0],[2003.92,0.0],[2004.17,0.0],[2004.42,0.0],[2004.67,0.0],[2004.92,0.0],[2005.17,0.0],[2005.42,0.0],[2005.67,0.0],[2005.92,0.0],[2006.17,0.0],[2006.42,0.0],[2006.67,-0.2],[2006.92,-0.7],[2007.17,-1.3],[2007.42,-1.7],[2007.67,-3.0],[2007.92,-6.1],[2008.17,-9.1],[2008.42,-9.8],[2008.67,-12.3],[2008.92,-17.4],[2009.17,-20.6],[2009.42,-18.9],[2009.67,-18.9],[2009.92,-20.6],[2010.17,-22.2],[2010.42,-20.0],[2010.67,-21.7],[2010.92,-23.8],[2011.17,-25.4],[2011.42,-23.1],[2011.67,-24.1],[2011.92,-26.8],[2012.17,-26.4],[2012.42,-22.5],[2012.67,-21.8],[2012.92,-22.1],[2013.17,-19.9],[2013.42,-15.3],[2013.67,-13.5],[2013.92,-13.7],[2014.17,-12.7],[2014.42,-10.0],[2014.67,-9.4],[2014.92,-9.8],[2015.17,-9.0],[2015.42,-6.1],[2015.67,-5.2],[2015.92,-5.2],[2016.17,-4.3],[2016.42,-1.5],[2016.67,-0.4],[2016.92,-0.1],[2017.17,0.0],[2017.42,0.0],[2017.67,0.0],[2017.92,0.0],[2018.17,0.0],[2018.42,0.0],[2018.67,0.0],[2018.92,-0.3],[2019.17,0.0],[2019.42,0.0],[2019.67,0.0],[2019.92,0.0],[2020.17,0.0],[2020.42,0.0],[2020.67,0.0],[2020.92,0.0],[2021.17,0.0],[2021.42,0.0],[2021.67,0.0],[2021.92,0.0],[2022.17,0.0],[2022.42,0.0],[2022.67,-2.5],[2022.92,-4.5],[2023.17,-3.5],[2023.42,0.0],[2023.67,0.0],[2023.92,-0.6],[2024.17,0.0],[2024.42,0.0],[2024.67,-0.3],[2024.92,-0.7],[2025.17,0.0],[2025.42,0.0],[2025.67,-0.8],[2025.92,-1.4],[2026.17,-0.4],[2026.42,0.0]];
+var CORR=[[1958.17,-0.27],[1958.67,-0.29],[1959.17,-0.29],[1959.67,-0.3],[1960.17,-0.24],[1960.67,-0.24],[1961.17,-0.13],[1961.67,-0.01],[1962.17,0.04],[1962.67,-0.01],[1963.17,0.04],[1963.67,0.13],[1964.17,0.05],[1964.67,0.03],[1965.17,0.01],[1965.67,0.18],[1966.17,0.16],[1966.67,0.33],[1967.17,0.48],[1967.67,0.44],[1968.17,0.35],[1968.67,0.34],[1969.17,0.35],[1969.67,0.41],[1970.17,0.39],[1970.67,0.52],[1971.17,0.63],[1971.67,0.65],[1972.17,0.57],[1972.67,0.52],[1973.17,0.52],[1973.67,0.41],[1974.17,0.15],[1974.67,0.16],[1975.17,0.21],[1975.67,0.22],[1976.17,0.3],[1976.67,0.29],[1977.17,0.37],[1977.67,0.32],[1978.17,0.57],[1978.67,0.55],[1979.17,0.4],[1979.67,0.41],[1980.17,0.26],[1980.67,0.29],[1981.17,0.13],[1981.67,0.17],[1982.17,0.2],[1982.67,0.25],[1983.17,0.34],[1983.67,0.33],[1984.17,0.5],[1984.67,0.52],[1985.17,0.55],[1985.67,0.55],[1986.17,0.51],[1986.67,0.4],[1987.17,0.29],[1987.67,0.2],[1988.17,0.15],[1988.67,0.16],[1989.17,0.03],[1989.67,0.13],[1990.17,0.17],[1990.67,0.22],[1991.17,0.46],[1991.67,0.42],[1992.17,0.45],[1992.67,0.45],[1993.17,0.38],[1993.67,0.25],[1994.17,0.36],[1994.67,0.3],[1995.17,0.32],[1995.67,0.42],[1996.17,0.45],[1996.67,0.41],[1997.17,0.3],[1997.67,0.34],[1998.17,0.21],[1998.67,0.16],[1999.17,0.17],[1999.67,0.19],[2000.17,0.17],[2000.67,0.12],[2001.17,0.09],[2001.67,-0.09],[2002.17,-0.18],[2002.67,-0.27],[2003.17,-0.37],[2003.67,-0.43],[2004.17,-0.47],[2004.67,-0.34],[2005.17,-0.31],[2005.67,-0.1],[2006.17,-0.01],[2006.67,0.08],[2007.17,0.11],[2007.67,0.15],[2008.17,-0.2],[2008.67,-0.15],[2009.17,0.11],[2009.67,0.02],[2010.17,0.01],[2010.67,-0.06],[2011.17,-0.08],[2011.67,-0.17],[2012.17,-0.52],[2012.67,-0.6],[2013.17,-0.65],[2013.67,-0.57],[2014.17,-0.49],[2014.67,-0.18],[2015.17,-0.16],[2015.67,-0.09],[2016.17,-0.09],[2016.67,-0.1],[2017.17,-0.18],[2017.67,-0.23],[2018.17,-0.15],[2018.67,-0.1],[2019.17,-0.08],[2019.67,-0.08],[2020.17,-0.41],[2020.67,-0.3],[2021.17,-0.34],[2021.67,-0.31],[2022.17,-0.25],[2022.67,0.16],[2023.17,0.43],[2023.67,0.36],[2024.17,0.48],[2024.67,0.5],[2025.17,0.41],[2025.67,0.11],[2026.17,0.28],[2026.67,0.24]];
+
+drawAll();
+addEventListener('resize',function(){/* responsive via viewBox */});
+</script>
+</body>
+</html>
