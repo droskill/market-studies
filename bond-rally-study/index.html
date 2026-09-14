@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Will Bonds Finally Rally?</title>
+<meta name="description" content="The case for a bond rally has three legs: yields must mean-revert, everyone's short so a squeeze is coming, and foreign buyers are fleeing. All three have a real instinct — but chased down, they lead to carry and recession insurance, not mean reversion, and to cash over long duration in today's regime.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Will bonds finally rally? Three good instincts, one rabbit hole deeper.">
+<meta property="og:description" content="Yields don't mean-revert (they trend for decades). The 'crowded short' is market-neutral arbitrage, not squeezable bears. Foreigners aren't fleeing in dollars. The real bond case is carry plus recession insurance — and right now cash expresses it more cleanly than long bonds.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/bond-rally-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Will bonds finally rally? Three good instincts, one rabbit hole deeper.">
+<meta name="twitter:description" content="Yields are a near-random-walk, the record short is a hedged basis trade, and the long-bond 'hedge' failed in 2022 — exactly the inflation regime we're back in. The honest bond case is carry and insurance, and cash carries it better today.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/bond-rally-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--claim) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--claim) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A bond-market rabbit hole · Sep 2026</p>
+  <h1>Will bonds <em>finally</em> rally?</h1>
+  <p class="dek">The pitch is everywhere right now, and it has three legs: yields are so high they <em>must</em> mean-revert, so many people are short that a squeeze is coming, and foreign buyers are fleeing so something has to give. Every one of those starts from a real instinct. So I chased all three down &mdash; and they lead somewhere more useful than &ldquo;just buy bonds.&rdquo;</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>US Treasuries · yields &amp; TIC flows</span>
+    <span>1962&ndash;2026</span>
+    <span>Norgate Data · U.S. Treasury</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Credit where it&rsquo;s due: the bond bulls are reacting to something real. A 10-year yield near 5% is the highest entry in fifteen years, the &ldquo;everyone&rsquo;s short&rdquo; headlines are backed by genuinely record futures positioning, and it&rsquo;s true that China and Japan aren&rsquo;t the buyers they used to be. Those are the right things to notice. The question is whether they add up to &ldquo;bonds are about to rally.&rdquo;</p>
+
+  <p>So I took each leg one step past the slogan &mdash; tested the mean-reversion claim on sixty-four years of yields, looked at what the &ldquo;record short&rdquo; actually <em>is</em>, pulled the Treasury&rsquo;s own data on who owns the debt, and then asked the only question that matters for a portfolio: given all that, what do you actually hold? The short version: the bull case survives, but for a different reason than the one being sold &mdash; and in today&rsquo;s regime, plain cash expresses it better than long bonds.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Start yield &rarr; next-decade return</p>
+      <div class="big c-safe">+0.94</div>
+      <p class="sub">Correlation between the starting 10-year yield and the next ten years&rsquo; return. Bonds don&rsquo;t mean-revert &mdash; the forward return is just the carry you lock in today.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Foreign share of the market</p>
+      <div class="big c-claim">24%</div>
+      <p class="sub">Down from ~34% in 2013 &mdash; yet in dollars, foreign holdings are at a record. The market outgrew foreign demand; it didn&rsquo;t lose it.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">20-yr Treasuries in the 2022 shock</p>
+      <div class="big c-crit">&minus;29%</div>
+      <p class="sub">What TLT did in the inflation selloff &mdash; worse than the S&amp;P. The &ldquo;safe&rdquo; long-bond hedge fails in exactly the regime we&rsquo;re in now.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>Do yields actually mean-revert?</h2>
+  <p>This is the heart of the &ldquo;they&rsquo;re too high&rdquo; argument, and it borrows a mechanism from <em>stocks</em>. Equities mean-revert on valuation: a cheap decade tends to be followed by a rich one. The instinct is to assume bonds do the same &mdash; a high yield is &ldquo;cheap&rdquo; and should snap back. But a yield has no fixed level to snap back <em>to</em>, and the data says so plainly. Run an augmented Dickey-Fuller test on the 10-year yield and it fails to reject a unit root in <strong>every</strong> sub-period &mdash; 1962&ndash;81, 1981&ndash;2020, and 2020&ndash;today. In plain English: statistically it&rsquo;s a near-random walk that trends for decades, not a spring. The full-sample &ldquo;half-life&rdquo; of reversion is about nine years, which is another way of saying there&rsquo;s nothing tradeable there.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The &ldquo;normal&rdquo; yield you revert to keeps moving</h3>
+    <p class="csub">Average 10-year Treasury yield, by decade · 1960s&ndash;2020s</p>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>Whatever level a mean-reversion trader calls &ldquo;normal&rdquo; is set entirely by their lookback window. The anchor marched from ~5% in the 1960s up to ~11% in the 1980s and back down to ~2% in the 2010s. There is no stable mean &mdash; so there&rsquo;s nothing for the yield to revert to.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>What bonds <em>do</em> have is the cleanest relationship in all of macro: your forward return is basically the yield you start with. Build a rolling 10-year Treasury and the correlation between its starting yield and the next decade&rsquo;s annualized return is <strong>+0.94</strong> &mdash; the starting yield alone explains 88% of what you earn. So the grain of truth in &ldquo;bad decade &rarr; good decade&rdquo; is real, but the mechanism is <em>carry</em>, not reversion: the bad decade happened <em>because</em> yields rose, and the higher yield is the future return. At ~5% today you have a decent starting point &mdash; but that&rsquo;s an argument about carry, not about yields being &ldquo;due&rdquo; to fall.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">02</span>&ldquo;Everyone&rsquo;s short, so a squeeze is coming&rdquo;</h2>
+  <p>The positioning really is at a record &mdash; but it&rsquo;s worth knowing <em>what</em> the position is before betting on a squeeze. The giant &ldquo;short Treasuries&rdquo; figure is overwhelmingly the <strong>basis trade</strong>: hedge funds buy the cash bond and sell the matching futures contract, pocketing the tiny price gap between them plus the carry, financed in the repo market and levered 50&ndash;100&times; to make the pennies add up. The Fed estimates Cayman-based funds alone hold around <strong>$2 trillion</strong> of Treasuries this way.</p>
+
+  <p>The key point: that book is <em>hedged</em>. The short-futures leg is offset by the long-cash leg, so it&rsquo;s roughly neutral to the level of rates &mdash; it doesn&rsquo;t profit if yields rise and won&rsquo;t panic-cover into a rally if they fall. It isn&rsquo;t a pile of directional bears waiting to be squeezed. And the ETF version tells the same story: short interest in the big long-bond ETF peaked around 27% of float late in 2025 and has since drifted down to ~19% &mdash; the crowded short quietly came off, and there was no squeeze. The bond simply kept drifting while the shorts covered.</p>
+
+  <div class="callout">
+    <p>A hedged arbitrage isn&rsquo;t a coiled short. If anything the basis trade is a risk in the <em>other</em> direction &mdash; if repo funding seizes up, those funds are forced to dump the cash bonds at once, which spikes yields. That&rsquo;s the March-2020 scare, not a rally waiting to happen.</p>
+    <span class="who">The &ldquo;record short&rdquo; is mostly plumbing, not conviction.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">03</span>Are foreigners fleeing &mdash; and if so, who&rsquo;s buying?</h2>
+  <p>This is the best of the three instincts, and it&rsquo;s half right. China <em>is</em> selling: its holdings are down about a third over the decade to an 18-year low, a deliberate reserve-management retreat (and it&rsquo;s rotated toward gold). Japan trimmed recently too. But step back and the &ldquo;foreigners are dumping&rdquo; story needs two corrections. First, in <em>dollars</em> there&rsquo;s no dumping &mdash; total foreign holdings are near an all-time record around $9.3 trillion. What fell is their <em>share</em> of the market, from ~34% in 2013 to ~24% now &mdash; and that share actually ticked back <em>up</em> the last two years. The U.S. issued debt faster than foreigners bought it; it didn&rsquo;t lose them.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Top foreign holders of U.S. Treasuries · TIC, end of 2025 ($ billions)</caption>
+      <thead>
+        <tr><th>Holder</th><th>Holdings</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Japan</td><td>1,186</td><td style="text-align:left;font-variant-numeric:normal">#1; near flat</td></tr>
+        <tr><td>United Kingdom</td><td>863</td><td style="text-align:left;font-variant-numeric:normal">custodial hub, not an owner</td></tr>
+        <tr class="mark"><td>China (Mainland)</td><td class="hi">684</td><td style="text-align:left;font-variant-numeric:normal">lowest since 2008, &minus;&#8531; over decade</td></tr>
+        <tr><td>&nbsp;&nbsp;+ Hong Kong</td><td>953</td><td style="text-align:left;font-variant-numeric:normal">China group, still shrinking</td></tr>
+        <tr class="tot"><td>All foreign</td><td>9,270</td><td style="text-align:left;font-variant-numeric:normal;text-transform:none;letter-spacing:0;font-family:inherit">record in $; ~24% of the market</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>So who <em>is</em> absorbing all the new issuance, with auctions still clearing? The buyer base shifted from price-<em>insensitive</em> foreign central banks to price-<em>sensitive</em> domestic money. The Fed went from buyer to seller under quantitative tightening. In its place: <strong>money-market funds</strong> (swollen past $7 trillion, voracious buyers of Treasury <em>bills</em>), <strong>U.S. households</strong> buying directly and through funds, and <strong>banks</strong> (back up to $1.8 trillion from $700 billion pre-pandemic). Domestic and foreign <em>private</em> investors are now about 60% of the market, up from 37% in 2014. Treasury leaned issuance toward short bills, which the money funds swallow easily &mdash; which is exactly why auctions don&rsquo;t fail.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Foreign share of the Treasury market: down, then a bit back up</h3>
+    <p class="csub">Foreign &amp; international holdings as a % of total public debt · year averages</p>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>The structural decline is real &mdash; the price-insensitive official bid is a shrinking slice. But the strain doesn&rsquo;t show up as a failed auction; it shows up as a <em>higher clearing yield</em>, because the marginal buyer is now someone who has to be paid. That actually supports the &ldquo;yields biased higher&rdquo; view &mdash; just through supply and term premium, not a foreign fire-sale.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">04</span>So what do you actually hold?</h2>
+  <p>Here&rsquo;s where the rabbit hole pays off. If yields don&rsquo;t mean-revert and the short isn&rsquo;t squeezable, the real reason to own bonds is the boring one: you&rsquo;re paid ~5% to wait, and they&rsquo;re <em>insurance</em> against a recession &mdash; the one scenario that would hurt a stock-heavy portfolio most. But that insurance is regime-dependent, and right now the regime is working against it. Stock/bond correlation, reliably negative from 2008&ndash;2020, flipped positive in 2022 and sits around +0.3 today. When the shock is inflation rather than growth, long bonds fall <em>with</em> stocks &mdash; or worse.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>What each &ldquo;safe&rdquo; asset did during the S&amp;P&rsquo;s worst selloffs · total return</caption>
+      <thead>
+        <tr><th>Episode</th><th>Cash/T-bills</th><th>AGG</th><th>IEF (7&ndash;10y)</th><th>TLT (20y+)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>GFC 2008&ndash;09</td><td>+3.0%</td><td>+7.4%</td><td class="lo">+20.2%</td><td class="lo">+25.1%</td></tr>
+        <tr><td>COVID 2020</td><td>+0.1%</td><td>&minus;1.3%</td><td>+6.4%</td><td class="lo">+14.2%</td></tr>
+        <tr class="mark"><td>2022 inflation</td><td class="lo">+0.9%</td><td>&minus;14.4%</td><td>&minus;15.4%</td><td class="hi">&minus;29.3%</td></tr>
+        <tr><td>2025&ndash;26 war/oil</td><td>+6.9%</td><td>+5.8%</td><td>+4.9%</td><td>&minus;0.6%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The hedge that wasn&rsquo;t: the 2022 inflation shock</h3>
+    <p class="csub">Total return, Jan&ndash;Oct 2022 · cash was the only thing that held</p>
+    <div class="chart" id="chart3"></div>
+  </div>
+  <figcaption>When inflation is the shock, duration is not a hedge &mdash; 20-year Treasuries fell harder than the S&amp;P, and even the aggregate bond index dropped double digits. Only cash did its job. That&rsquo;s the same inflation-correlated regime we&rsquo;re back in today with oil spiking.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>I pressure-tested this on a real, stock-heavy book (a ~80% equity sleeve plus a 20% defensive sleeve, rebalanced monthly). Over 2011&ndash;2026, swapping that 20% between cash, intermediate bonds, and long bonds barely moves the headline numbers &mdash; but where it matters, the tail, <strong>cash wins the current regime</strong>: it gave the best risk-adjusted return and the smallest drawdown, won 2022 and 2025&ndash;26, and gave up only about a point to duration in COVID. And the carry you&rsquo;d be reaching for is a mirage after tax: T-bills and intermediate Treasuries yield almost the same (~4.3% vs ~4.4%), both taxed the same way, so there&rsquo;s no income reason to take the duration risk. Long bonds only win if yields <em>fall</em> &mdash; which is the recession bet, not today&rsquo;s inflation risk.</p>
+
+  <div class="callout">
+    <p>At a flat-to-inverted curve, cash pays you almost what the 10-year does with none of the duration risk. So hold the ballast in T-bills, and treat long duration as a small, deliberate recession hedge &mdash; sized for the scenario where it actually pays, and knowing it can fail if the shock is inflation instead.</p>
+    <span class="who">Own the carry and the insurance &mdash; just not the part that fails in this regime.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">05</span>The honest bottom line</h2>
+  <p>Bonds <em>can</em> rally &mdash; but not for the reasons on the marketing sheet. Not because yields mean-revert (they don&rsquo;t; they trend for decades). Not because a crowded short gets squeezed (it&rsquo;s a hedged arbitrage, not a bet). And not because foreigners are dumping (in dollars they&rsquo;re near a record; the pressure is supply, which if anything pushes yields <em>up</em>). The one path that sends yields meaningfully lower is a growth shock that tips the economy into recession &mdash; and ironically the oil spike pushing yields up today is exactly the kind of thing that could cause it a year out. That&rsquo;s the real bull case: not a coiled spring, but cheap insurance against the thing you&rsquo;re most exposed to &mdash; bought, for now, more cleanly in cash than in long bonds.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Yields</b><span>Constant-maturity Treasury yields from Norgate Data, daily, 1962&ndash;2026 (10-year from 1962, 30-year from 1977), sampled to month-end.</span></li>
+    <li><b>Reversion test</b><span>Augmented Dickey-Fuller unit-root regression on the yield level, full sample and three sub-periods; AR(1) half-life from the same fit. No look-ahead.</span></li>
+    <li><b>Carry</b><span>A rolling constant-maturity 10-year total-return proxy (coupon carry &minus; modified-duration &times; yield change + convexity); correlation of starting yield to the subsequent 120-month annualized return.</span></li>
+    <li><b>Holdings</b><span>U.S. Treasury TIC &ldquo;Major Foreign Holders&rdquo; (monthly, 2000&ndash;2025) for country detail; FRED <code>FDHBFIN</code> &divide; <code>GFDEBTN</code> for the foreign share of total public debt.</span></li>
+    <li><b>Overlay</b><span>SPY/IEF/TLT/AGG and a fed-funds cash proxy, daily total return, monthly rebalance; drawdown episodes measured peak-to-trough. Tax note uses a high-bracket Massachusetts investor (Treasury interest is state-exempt, federally ordinary).</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes the bond bulls wrong to be interested &mdash; a 5% yield is the most interesting bonds have been in years, and the instinct to look at positioning and foreign flows is the right instinct. Chasing each leg one step further just changes the <em>why</em>: the case is carry and recession insurance, not mean reversion or a squeeze, and the cleanest way to hold it in an inflation-prone, flat-curve world is the most boring one &mdash; cash, with a measured dash of duration for the tail.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">@droskill</b>. Yields and prices from Norgate Data; foreign-holdings data from the U.S. Treasury TIC system and FRED; analysis in Python (norgatedata + pandas).</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index, yield, and total-return data, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('bondrally-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('bondrally-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- flexible vertical bars (signed or unsigned, with a zero baseline) ----------
+function vbars(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=o.cats, vals=o.values, colors=o.colors;
+  var ymin=o.ymin, ymax=o.ymax, step=o.step, dec=(o.dec==null?1:o.dec);
+  var unit=o.unit||'', sign=(o.sign!==false);
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  function fmt(v){return (sign&&v>0?'+':'')+v.toFixed(dec)+unit;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    var gl=(Math.abs(g-Math.round(g))<1e-9?g.toFixed(0):g.toFixed(1));
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(sign&&g>0?'+':'')+gl+'</text>';
+  }
+  var y0=y(Math.max(ymin,0));
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 66);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+fmt(v)+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+fmt(v)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+function drawAll(){
+  // 01 — decade-average 10Y yield (no stable mean)
+  vbars('#chart1',{
+    cats:['1960s','1970s','1980s','1990s','2000s','2010s','2020s'],
+    values:[4.9,7.5,10.6,6.7,4.4,2.4,3.1],
+    colors:['--safe','--safe','--crit','--safe','--safe','--safe','--claim'],
+    ymin:0, ymax:12, step:3, unit:'%', sign:false,
+    aria:'Average 10-year Treasury yield by decade, peaking in the 1980s'
+  });
+  // 03 — foreign share of total public debt
+  vbars('#chart2',{
+    cats:['2011','2013','2015','2020','2023','2025'],
+    values:[32.6,34.1,33.5,27.1,23.3,24.7],
+    colors:['--safe','--claim','--safe','--safe','--safe','--pos'],
+    ymin:0, ymax:40, step:10, unit:'%', sign:false,
+    aria:'Foreign share of total US public debt, peaking near 34% in 2013 and easing to about 24% by 2025'
+  });
+  // 04 — the 2022 inflation shock
+  vbars('#chart3',{
+    cats:['S&P 500','Cash','AGG','IEF','TLT'],
+    values:[-24.5, 0.9, -14.4, -15.4, -29.3],
+    colors:['--ink-2','--pos','--claim','--claim','--crit'],
+    ymin:-32, ymax:4, step:4, unit:'%', sign:true,
+    aria:'Total return in the 2022 inflation selloff: stocks down 24%, cash up, long Treasuries down 29%'
+  });
+}
+drawAll();
+addEventListener('resize',function(){/* responsive via viewBox */});
+</script>
+</body>
+</html>
