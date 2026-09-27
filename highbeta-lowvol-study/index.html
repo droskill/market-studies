@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does High Beta Leading Low Vol Mean Anything?</title>
+<meta name="description" content="When high-beta stocks are beating low-volatility stocks, is that a real risk-on/risk-off signal? Rebuilt the spread from S&P 500 stocks back to 1994, found a real 32-year pattern that concentrates almost entirely in bear-market tails &mdash; then tried to trade it, and a native overfitting test called it a coin flip before it ever touched a locked holdout.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Does high beta leading low vol mean anything? One rabbit hole deeper.">
+<meta property="og:description" content="A real 32-year pattern &mdash; and a coin flip the moment I tried to trade it. High-Beta-leading days are the smoother regime; Low-Vol-leading days carry almost every bear market's losses. Turning it into a timing rule failed a native overfitting test before it ever touched a locked holdout.">
+<meta property="og:image" content="https://droskill.github.io/market-studies/highbeta-lowvol-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Does high beta leading low vol mean anything? One rabbit hole deeper.">
+<meta name="twitter:description" content="A real 32-year pattern in the data, and a coin flip the moment I tried to actually trade it.">
+<meta name="twitter:image" content="https://droskill.github.io/market-studies/highbeta-lowvol-study/og-cover.png">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--claim) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--claim) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A factor-rotation rabbit hole · Sep 2026</p>
+  <h1>Does high beta leading low vol <em>mean</em> anything?</h1>
+  <p class="dek">It sounds like it should mean something: when aggressive, high-beta stocks are outrunning defensive, low-volatility ones, that&rsquo;s supposed to be a &ldquo;risk-on&rdquo; tape. I tested it three ways &mdash; on the two ETFs built for exactly this trade, rebuilt from the stock market back to 1994, and then, because a real pattern and a real trade are two different things, by actually trying to trade it.</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>SPHB/SPLV &amp; synthetic S&amp;P 500 deciles</span>
+    <span>1994&ndash;2026</span>
+    <span>Norgate Data · RealTest</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">The reasoning is standard-issue finance, not a hot take. Frazzini and Pedersen&rsquo;s &ldquo;Betting Against Beta&rdquo; and the whole low-volatility-anomaly literature are built on exactly this beta spread, and S&amp;P runs two investable indexes on it &mdash; High Beta and Low Volatility slices of the S&amp;P 500 &mdash; each with an ETF (SPHB, SPLV) tracking it since May 2011. When SPHB is beating SPLV, the story goes, risk appetite is up; when SPLV leads, the market is getting defensive.</p>
+
+  <p>Fifteen years of ETF data is a thin sample for a question about crashes &mdash; only two real ones fall inside it, 2020 and 2022. So I rebuilt the same spread from the underlying stocks, survivorship-free, back to 1994: every month, rank the S&amp;P 500 by trailing beta and by trailing volatility, and hold the top-beta decile against the bottom-vol decile. That puts three more bear markets in the sample &mdash; 2000&ndash;02 and 2008 &mdash; instead of two.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">Sharpe edge, 32 years</p>
+      <div class="big c-safe">+0.31</div>
+      <p class="sub">SPY&rsquo;s realized Sharpe on High-Beta-leading days (0.81) vs Low-Vol-leading days (0.50). High-Beta leads at every lookback tested, 21&ndash;126 days.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">2008, split by regime</p>
+      <div class="big c-claim">&minus;27.8%</div>
+      <p class="sub">SPY&rsquo;s return on Low-Vol-leading days (82% of the year) vs &minus;14.2% on High-Beta-leading days. 2000&ndash;02 and 2022 show the same split.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">When I tried to trade it</p>
+      <div class="big c-crit">51%</div>
+      <p class="sub">Overfitting score from RealTest&rsquo;s native CSCV/PBO test on the timing rule &mdash; a coin flip. Killed before it ever touched the locked holdout.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>The pattern, and where it holds</h2>
+  <p>The regime definition is a straight relative-strength trend: divide one basket&rsquo;s equity by the other&rsquo;s and ask whether the ratio is above or below its own trailing average. &ldquo;High-Beta leading&rdquo; = the ratio is above its N-day average; &ldquo;Low-Vol leading&rdquo; = at or below it. For the 32-year version, the two baskets are synthetic: each month, rank all point-in-time S&amp;P 500 members by trailing 252-day beta (the standard market-model beta, correlation times the ratio of volatilities) for the high-beta decile, and by trailing 252-day volatility for the low-vol decile &mdash; bottom decile, lowest vol. Equal-weight, about 50 names each. Two mutually-exclusive long-SPY sleeves, each active only on the days its own regime is on, show what SPY actually did while each side was leading &mdash; contemporaneous, not a forecast.</p>
+  <p>The clean way to check whether that&rsquo;s a real structural difference or a fluke of one lookback window is to sweep the trend window and see if the gap holds up everywhere, not just at the value I happened to pick first.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>High-Beta leads on Sharpe at every lookback</h3>
+    <p class="csub">SPY&rsquo;s realized Sharpe while each regime is on · synthetic S&amp;P 500 deciles, 1994&ndash;2026</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>High-Beta leading</span>
+      <span><i style="background:var(--claim)"></i>Low-Vol leading</span>
+    </div>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>Six lookbacks, 21 to 126 trading days, and High-Beta leads on every single one &mdash; a plateau, not a lucky spike at one setting. But High-Beta&rsquo;s edge is in <em>smoothness</em>, not size: Low-Vol-leading days often earn the higher raw return (10.3% vs 8.2% annualized at N=21) &mdash; just a choppier one.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">02</span>The real signal is at the tails</h2>
+  <p>Along the way, the naive high-beta decile did something extraordinary: equal-weighted, monthly-rebalanced, no cap-weighting to dilute the biggest movers, it fell <strong>97.8% from its own peak in October 2002</strong> &mdash; a real, mechanically legitimate result, not a data error. The stocks that measure as &ldquo;highest beta&rdquo; in a bear market are the ones that already crashed hardest, and an equal-weight decile keeps buying them every month on the way down. It&rsquo;s the textbook betting-against-beta result: naive high-beta portfolios crash hardest exactly when beta matters most.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Growth of $1, log scale</h3>
+    <p class="csub">Synthetic high-beta decile vs low-vol decile · 1994&ndash;2026</p>
+    <div class="legend">
+      <span><i style="background:var(--claim)"></i>High-beta decile</span>
+      <span><i style="background:var(--safe)"></i>Low-vol decile</span>
+    </div>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>Both baskets end up fine &mdash; 29&times; and 25&times; over 32 years &mdash; but the paths could not look more different. The high-beta line falls off a cliff in 2001&ndash;02 and takes over a decade to fully recover; the low-vol line barely notices most drawdowns.</figcaption>
+</figure>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The crash lives almost entirely in one basket</h3>
+    <p class="csub">Drawdown from prior peak · 1994&ndash;2026</p>
+    <div class="legend">
+      <span><i style="background:var(--claim)"></i>High-beta decile</span>
+      <span><i style="background:var(--safe)"></i>Low-vol decile</span>
+    </div>
+    <div class="chart" id="chart3"></div>
+  </div>
+  <figcaption>&minus;96% on the high-beta side (daily data touches &minus;97.8%) against &minus;36% on the low-vol side, and the high-beta line doesn&rsquo;t make it back above &minus;50% until 2018 &mdash; sixteen years later. That asymmetry is most of why Low-Vol so reliably leads once a real bear market gets going: it isn&rsquo;t that low-vol stocks are winning, it&rsquo;s that high-beta stocks are still digging out.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>Split by year, the pattern is unmistakable in the crashes and absent everywhere else.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>SPY&rsquo;s return, split by which regime was leading that day &middot; bear-market years</caption>
+      <thead>
+        <tr><th>Year</th><th>SPY, full year</th><th>High-Beta-leading days</th><th>Low-Vol-leading days</th></tr>
+      </thead>
+      <tbody>
+<tr><td>2000</td><td>&minus;9.7%</td><td class="lo">&minus;7.8%</td><td class="hi">&minus;5.3%</td></tr>
+<tr><td>2001</td><td>&minus;11.8%</td><td class="lo">&minus;2.5%</td><td class="hi">&minus;9.0%</td></tr>
+<tr class="mark"><td>2002</td><td>&minus;21.6%</td><td class="lo">&minus;5.7%</td><td class="hi">&minus;17.1%</td></tr>
+<tr class="mark"><td>2008</td><td>&minus;36.8%</td><td class="lo">&minus;14.2%</td><td class="hi">&minus;27.8%</td></tr>
+<tr><td>2022</td><td>&minus;18.2%</td><td class="hi">&minus;13.7%</td><td class="lo">&minus;2.2%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted)">2000&ndash;01 read oddly because Low-Vol-leading days dominated the year (72&ndash;75% of trading days) while the market bled slowly throughout; by 2002 and 2008 the gap is unambiguous. 2022 flips the label assignment &mdash; a rate-driven growth/high-beta selloff with defensives holding up &mdash; but the same mechanism: whichever side isn&rsquo;t crashing gets to &ldquo;lead.&rdquo;</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Whichever side is crashing shows up in its own column</h3>
+    <p class="csub">SPY&rsquo;s return, split by regime · bear-market years, 1994&ndash;2026</p>
+    <div class="chart" id="chart4"></div>
+  </div>
+  <figcaption>2008 is the cleanest case: Low-Vol led 82% of the year, and SPY lost 27.8% on those days against 14.2% on the High-Beta-leading days. 2022 is the mirror image &mdash; a bear market that hit high-beta names hardest, so Low-Vol-leading days were the calm ones.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>Outside the crashes there&rsquo;s no consistent edge, and the signal visibly lags sharp turns. In the 2009 V-recovery, Low-Vol-leading days earned +26.2% against High-Beta&rsquo;s +0.4% &mdash; the exact opposite of what &ldquo;risk appetite&rdquo; framing would predict, because the early rally days were still labeled Low-Vol from the crash momentum. COVID flips it the intuitive way: Low-Vol-leading days were the crash itself (&minus;1.3%), High-Beta-leading days were the recovery (+6.5%). Both readings are correct for their moment; neither would have told you what to do in real time.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">03</span>So I tried to trade it</h2>
+  <p>A real contemporaneous pattern isn&rsquo;t the same thing as a tradable rule, so I built the one rule the finding actually implies &mdash; <strong>long SPY only while High-Beta leads, cash otherwise</strong> &mdash; and ran it through a locked-holdout validation gauntlet rather than trusting the backtest. Split the 32-year sample into a development window (1994&ndash;2016, all tuning happens here) and a locked holdout (2017&ndash;2026, touched exactly once, if at all).</p>
+  <p>On the development window, at the lookback I&rsquo;d have picked going in (63 trading days), the timing rule <strong>ties buy-and-hold on risk-adjusted return instead of beating it</strong>: 5.3% a year against 9.25% for SPY, but with less than half the drawdown (&minus;32% vs &minus;55%). Same MAR (0.17 both), nearly the same Sharpe (0.54 vs 0.56). It cuts return and risk in roughly the same proportion &mdash; a wash dressed up as lower volatility, not an edge.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Sometimes ahead of buy &amp; hold, sometimes behind &mdash; no pattern to it</h3>
+    <p class="csub">MAR (return &divide; worst drawdown), development window 1994&ndash;2016</p>
+    <div class="chart" id="chart5"></div>
+  </div>
+  <figcaption>If the timing rule captured something real, its MAR should sit consistently above buy-and-hold&rsquo;s flat 0.17 line across lookbacks. Instead it bounces both sides of it &mdash; worse at 21 and 126 days, better at 84 and 105 &mdash; the signature of noise, not structure.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">04</span>The kill</h2>
+  <p>RealTest has a native overfitting test built for exactly this doubt: split the 22-year development window into 16 time blocks, form every way to pick 8 of them as &ldquo;in-sample&rdquo; and the other 8 as &ldquo;out-of-sample&rdquo; &mdash; 12,870 combinations &mdash; and ask how often the lookback that looks best in-sample also ranks well out-of-sample. A real, structural edge should win consistently across splits. Noise wins about half the time, by construction.</p>
+  <p>The result: an <strong>Overfitting Score of 51.4%</strong>. Coin-flip, and if anything a hair worse than 50% &mdash; with 12,870 splits the sampling noise on that number is tiny, so the in-sample-best lookback was actively uninformative about the out-of-sample rank, not just unhelpful. The reality haircut on top: in-sample Sharpes across splits ran 0.55&ndash;0.87, and the expected out-of-sample shrinkage was 0.21 &mdash; enough to erase most of whatever edge the in-sample number showed.</p>
+  <p>That result ends the test. The locked 2017&ndash;2026 holdout was never touched &mdash; zero peeks &mdash; because spending it on a rule that already failed the overfitting check would just contaminate data I might want for something that actually survives one day.</p>
+</section>
+
+<div class="callout">
+  <p>A real pattern in 32 years of data, and a coin flip the moment it has to pick a parameter to trade on. Both things are true at the same time.</p>
+  <span class="who">Real crash signature, no tradable edge.</span>
+</div>
+
+<section class="measure">
+  <h2><span class="num">05</span>The honest bottom line</h2>
+  <p>The mechanism is real and it replicates: High-Beta-leading days are a genuinely smoother, higher-Sharpe regime for SPY, holding at every lookback from 21 to 126 days across 32 years, and every major bear market in the sample &mdash; 2000&ndash;02, 2008, 2022 &mdash; shows the same signature of Low-Vol dominating the calendar while the market bleeds. What it isn&rsquo;t is a standalone timing signal: the one tradable rule it implies ties buy-and-hold rather than beating it, the parameter choice behind that rule is statistically indistinguishable from noise, and it never earned the right to spend the locked holdout that would have been the real test.</p>
+  <p>For what it&rsquo;s worth, the indicator is currently reading <strong>High-Beta leading</strong>, about 10% above its own trend as of the last close in this data &mdash; a description of where the ratio sits, not a forecast, and not something to act on by itself.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>ETF check</b><span>SPHB (S&amp;P 500 High Beta) and SPLV (S&amp;P 500 Low Volatility), Norgate Data, total return, inception 2011-05-05 to 2026.</span></li>
+    <li><b>Synthetic spread</b><span>S&amp;P 500 &ldquo;Current &amp; Past&rdquo; universe (Norgate, survivorship-free), point-in-time membership via <code>InSPX</code> / <code>Constituency: $SPX</code>. Monthly rank by trailing 252-day beta (<code>Correl(ri,rm,252)&times;StdDev(ri,252)/StdDev(rm,252)</code>) for the high-beta decile and trailing 252-day volatility for the low-vol decile (bottom decile). Equal-weight, ~50 names each, ~10% of the eligible universe.</span></li>
+    <li><b>Regime signal</b><span>rsRatio = high-beta basket&rsquo;s equity &divide; low-vol basket&rsquo;s equity. &ldquo;Leading&rdquo; = above/below its own N-day trailing average, close-based, trades at the next open. Swept N &isin; {21, 42, 63, 84, 105, 126} trading days.</span></li>
+    <li><b>Gauntlet</b><span>Locked development/holdout split at 1994-06&ndash;2016-12 / 2017-01&ndash;2026-09 (~30% of usable history). Native CSCV/PBO overfitting test: 16 time blocks, C(16,8) = 12,870 combinatorial in/out-of-sample splits. Holdout never run (0 peeks) &mdash; the development-window overfitting test killed the candidate first.</span></li>
+    <li><b>Execution</b><span>Signal at the close, filled at the next open, standard NextOpen order timing, no leverage. No slippage/commission model was applied to the timing rule &mdash; moot, since it was killed before a costs check.</span></li>
+    <li><b>Not tested</b><span>A cap-weighted or quarterly-rebalanced version of the decile spread (closer to the real S&amp;P index methodology, which would likely dampen the &minus;97.8% blowup); using the regime as one input in a larger model rather than a standalone rule; intraday or weekly signal variants.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes the mechanism wrong. Betting-against-beta is one of the better-documented anomalies in finance, and low-volatility stocks really do end up &ldquo;leading&rdquo; when the tape is breaking, in a way that shows up cleanly across four separate bear markets and 32 years of data. It&rsquo;s a legitimate thing to keep an eye on. What it isn&rsquo;t &mdash; at least not in the simple long/cash form I could think to test &mdash; is something you can point a strategy at.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">@droskill</b>. Prices and constituent history from Norgate Data; decile construction, regime signal, and CSCV/PBO validation in RealTest; analysis in Python (norgatedata + pandas).</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index and total-return data, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('highbeta-lowvol-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('highbeta-lowvol-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- flexible vertical bars (signed or unsigned, zero baseline) ----------
+function vbars(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=o.cats, vals=o.values, colors=o.colors;
+  var ymin=o.ymin, ymax=o.ymax, step=o.step, dec=(o.dec==null?1:o.dec);
+  var unit=o.unit||'', sign=(o.sign!==false);
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  function fmt(v){return (sign&&v>0?'+':'')+v.toFixed(dec)+unit;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    var gl=(Math.abs(g-Math.round(g))<1e-9?g.toFixed(0):g.toFixed(dec<2?1:2));
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(sign&&g>0?'+':'')+gl+unit+'</text>';
+  }
+  var y0=y(Math.max(ymin,0));
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 66);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+fmt(v)+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+fmt(v)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- grouped bars (two or more series, unsigned or signed) ----------
+function groupedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, series=opts.series, ymax=opts.ymax, ymin=opts.ymin||0, unit=(opts.unit!=null?opts.unit:'%');
+  var W=920,H=360,mL=44,mR=14,mT=20,mB=46, pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  var step=opts.ystep||10;
+  for(var g=ymin; g<=ymax+0.001; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g.toFixed(opts.gdec==null?0:opts.gdec)+unit+'</text>';
+  }
+  var yzero=y(0);
+  svg+='<line x1="'+mL+'" y1="'+yzero+'" x2="'+(W-mR)+'" y2="'+yzero+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, ns=series.length;
+  var inner=gw*0.64, bw=Math.min(inner/ns-4, 46);
+  var totalBars=ns*bw+(ns-1)*6, startOff=(gw-totalBars)/2;
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw;
+    svg+='<text x="'+(gx+gw/2)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+    for(var s=0;s<ns;s++){
+      var v=series[s].values[i], bx=gx+startOff+s*(bw+6);
+      var by=Math.min(y(v),yzero), bh=Math.abs(y(v)-yzero);
+      var col=cssvar(series[s].colorVar);
+      svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(bh,0.5).toFixed(1)+'" rx="3" fill="'+col+'" '
+         +'data-tip="'+cats[i]+' &middot; '+series[s].name+': <b>'+(v>=0?'+':'')+v.toFixed(opts.ldec==null?0:opts.ldec)+unit+'</b>"></rect>';
+      var ly=by-6;
+      svg+='<text x="'+(bx+bw/2)+'" y="'+ly+'" fill="'+col+'" font-size="12" font-weight="600" text-anchor="middle">'+(v>=0?'+':'')+v.toFixed(opts.ldec==null?0:opts.ldec)+'</text>';
+    }
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- time-series line(s) with zero baseline + optional era bands ----------
+function dualLine(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var series=o.series, ymin=o.ymin, ymax=o.ymax, step=o.ystep, unit=o.unit||'', ydec=(o.ydec==null?0:o.ydec);
+  var W=920,H=360,mL=48,mR=16,mT=18,mB=40, pw=W-mL-mR, ph=H-mT-mB;
+  var allx=[]; series.forEach(function(s){s.points.forEach(function(p){allx.push(p[0]);});});
+  var x0=Math.min.apply(null,allx), x1=Math.max.apply(null,allx);
+  var x=function(v){return mL+(v-x0)/(x1-x0)*pw;};
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  (o.bands||[]).forEach(function(b){
+    var bx=x(b.x0), bw=x(b.x1)-x(b.x0);
+    svg+='<rect x="'+bx.toFixed(1)+'" y="'+mT+'" width="'+bw.toFixed(1)+'" height="'+ph+'" fill="'+cssvar(b.colorVar)+'" opacity="'+(b.alpha||0.12)+'"/>';
+    if(b.label) svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(mT+16)+'" fill="'+cssvar(b.colorVar)+'" font-size="12" text-anchor="middle" opacity="0.85">'+b.label+'</text>';
+  });
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(o.fmt?o.fmt(g):((o.sign&&g>0?'+':'')+g.toFixed(ydec)+unit))+'</text>';
+  }
+  if(ymin<0&&ymax>0){var yz=y(0); svg+='<line x1="'+mL+'" y1="'+yz.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yz.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';}
+  (o.xticks||[]).forEach(function(t){
+    svg+='<text x="'+x(t).toFixed(1)+'" y="'+(H-mB+24)+'" fill="'+muted+'" font-size="12" text-anchor="middle">'+t+'</text>';
+  });
+  series.forEach(function(s){
+    var d=''; s.points.forEach(function(p,i){d+=(i?'L':'M')+x(p[0]).toFixed(1)+' '+y(p[1]).toFixed(1)+' ';});
+    svg+='<path d="'+d+'" fill="none" stroke="'+cssvar(s.colorVar)+'" stroke-width="'+(s.width||2.2)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+  svg+='</svg>';
+  el.innerHTML=svg;
+}
+
+function fmtLog(p){return function(g){var v=Math.pow(10,g); return p+(v<1?v.toFixed(2):(v>=1000?v.toLocaleString('en-US',{maximumFractionDigits:0}):v.toFixed(0)));};}
+
+function drawAll(){
+  groupedBars('#chart1',{
+    cats:['21d','42d','63d','84d','105d','126d'],
+    series:[
+      {name:'High-Beta leading', colorVar:'--safe', values:[0.62,0.80,0.81,0.89,0.86,0.85]},
+      {name:'Low-Vol leading', colorVar:'--claim', values:[0.56,0.52,0.50,0.47,0.42,0.46]}
+    ],
+    ymin:0, ymax:1.0, ystep:0.2, gdec:1, unit:'', ldec:2,
+    aria:'Grouped bar chart: SPY realized Sharpe on High-Beta-leading versus Low-Vol-leading days, across six trend lookbacks from 21 to 126 trading days. High-Beta leads on every lookback.'
+  });
+  dualLine('#chart2',{
+    series:[
+      {points:HBG, colorVar:'--claim', width:2.0},
+      {points:LVG, colorVar:'--safe', width:1.8}
+    ],
+    ymin:-1, ymax:1.5, ystep:0.5, fmt:fmtLog('$'), xticks:[1994,1999,2004,2009,2014,2019,2024],
+    aria:'Growth of one dollar invested in the synthetic high-beta decile versus the low-vol decile, log scale, 1994 to 2026'
+  });
+  dualLine('#chart3',{
+    series:[
+      {points:HBDD, colorVar:'--claim', width:2.0},
+      {points:LVDD, colorVar:'--safe', width:1.8}
+    ],
+    ymin:-100, ymax:0, ystep:20, unit:'%', ydec:0, xticks:[1994,1999,2004,2009,2014,2019,2024],
+    aria:'Drawdown from prior peak: synthetic high-beta decile versus low-vol decile, 1994 to 2026'
+  });
+  groupedBars('#chart4',{
+    cats:['2000','2001','2002','2008','2022'],
+    series:[
+      {name:'High-Beta-leading days', colorVar:'--safe', values:[-7.8,-2.5,-5.7,-14.2,-13.7]},
+      {name:'Low-Vol-leading days', colorVar:'--claim', values:[-5.3,-9.0,-17.1,-27.8,-2.2]},
+      {name:'SPY, full year', colorVar:'--muted', values:[-9.7,-11.8,-21.6,-36.8,-18.2]}
+    ],
+    ymin:-40, ymax:0, ystep:10, unit:'%', ldec:1,
+    aria:'Grouped bar chart: SPY return split by regime versus the full-year return, for five bear-market years'
+  });
+  groupedBars('#chart5',{
+    cats:['21d','42d','63d','84d','105d','126d'],
+    series:[
+      {name:'SPY buy & hold (same window)', colorVar:'--muted', values:[0.17,0.17,0.17,0.17,0.17,0.17]},
+      {name:'Long-only-when-High-Beta-leads', colorVar:'--claim', values:[0.08,0.15,0.17,0.26,0.25,0.15]}
+    ],
+    ymin:0, ymax:0.3, ystep:0.1, gdec:1, unit:'', ldec:2,
+    aria:'Grouped bar chart: MAR of the High-Beta timing rule versus flat buy-and-hold MAR, across six lookbacks, development window 1994 to 2016'
+  });
+}
+
+// ---- chart data ----
+var HBG=[[1994.417,-0.018],[1994.5,0.0],[1994.583,0.033],[1994.667,0.017],[1994.75,0.017],[1994.833,0.0],[1994.917,0.017],[1995.0,0.0],[1995.083,0.033],[1995.167,0.049],[1995.25,0.064],[1995.333,0.079],[1995.417,0.107],[1995.5,0.134],[1995.583,0.134],[1995.667,0.146],[1995.75,0.134],[1995.833,0.134],[1995.917,0.107],[1996.0,0.121],[1996.083,0.146],[1996.167,0.121],[1996.25,0.158],[1996.333,0.17],[1996.417,0.158],[1996.5,0.121],[1996.583,0.134],[1996.667,0.182],[1996.75,0.182],[1996.833,0.236],[1996.917,0.204],[1997.0,0.246],[1997.083,0.246],[1997.167,0.215],[1997.25,0.255],[1997.333,0.301],[1997.417,0.31],[1997.5,0.38],[1997.583,0.35],[1997.667,0.38],[1997.75,0.358],[1997.833,0.373],[1997.917,0.373],[1998.0,0.387],[1998.083,0.435],[1998.167,0.453],[1998.25,0.465],[1998.333,0.447],[1998.417,0.471],[1998.5,0.477],[1998.583,0.365],[1998.667,0.422],[1998.75,0.477],[1998.833,0.521],[1998.917,0.571],[1999.0,0.635],[1999.083,0.606],[1999.167,0.647],[1999.25,0.655],[1999.333,0.635],[1999.417,0.681],[1999.5,0.667],[1999.583,0.674],[1999.667,0.67],[1999.75,0.716],[1999.833,0.772],[1999.917,0.855],[2000.0,0.827],[2000.083,0.916],[2000.167,0.937],[2000.25,0.892],[2000.333,0.848],[2000.417,0.901],[2000.5,0.879],[2000.583,0.956],[2000.667,0.894],[2000.75,0.85],[2000.833,0.688],[2000.917,0.685],[2001.0,0.736],[2001.083,0.505],[2001.167,0.38],[2001.25,0.511],[2001.333,0.483],[2001.417,0.489],[2001.5,0.422],[2001.583,0.318],[2001.667,0.049],[2001.75,0.225],[2001.833,0.334],[2001.917,0.342],[2002.0,0.35],[2002.083,0.246],[2002.167,0.326],[2002.25,0.225],[2002.333,0.17],[2002.417,0.0],[2002.5,-0.119],[2002.583,-0.167],[2002.667,-0.444],[2002.75,-0.194],[2002.833,0.017],[2002.917,-0.119],[2003.0,-0.143],[2003.083,-0.119],[2003.167,-0.119],[2003.25,0.0],[2003.333,0.107],[2003.417,0.079],[2003.5,0.093],[2003.583,0.182],[2003.667,0.134],[2003.75,0.215],[2003.833,0.246],[2003.917,0.246],[2004.0,0.265],[2004.083,0.255],[2004.167,0.236],[2004.25,0.182],[2004.333,0.225],[2004.417,0.246],[2004.5,0.17],[2004.583,0.134],[2004.667,0.158],[2004.75,0.193],[2004.833,0.246],[2004.917,0.265],[2005.0,0.225],[2005.083,0.236],[2005.167,0.204],[2005.25,0.17],[2005.333,0.215],[2005.417,0.215],[2005.5,0.255],[2005.583,0.246],[2005.667,0.255],[2005.75,0.246],[2005.833,0.274],[2005.917,0.274],[2006.0,0.342],[2006.083,0.326],[2006.167,0.35],[2006.25,0.358],[2006.333,0.326],[2006.417,0.326],[2006.5,0.292],[2006.583,0.301],[2006.667,0.31],[2006.75,0.342],[2006.833,0.373],[2006.917,0.358],[2007.0,0.373],[2007.083,0.373],[2007.167,0.387],[2007.25,0.415],[2007.333,0.441],[2007.417,0.422],[2007.5,0.415],[2007.583,0.401],[2007.667,0.435],[2007.75,0.422],[2007.833,0.38],[2007.917,0.358],[2008.0,0.318],[2008.083,0.301],[2008.167,0.274],[2008.25,0.301],[2008.333,0.31],[2008.417,0.215],[2008.5,0.193],[2008.583,0.193],[2008.667,0.146],[2008.75,0.064],[2008.833,-0.018],[2008.917,0.017],[2009.0,-0.036],[2009.083,-0.119],[2009.167,-0.076],[2009.25,0.017],[2009.333,0.079],[2009.417,0.079],[2009.5,0.107],[2009.583,0.158],[2009.667,0.193],[2009.75,0.158],[2009.833,0.193],[2009.917,0.204],[2010.0,0.204],[2010.083,0.225],[2010.167,0.274],[2010.25,0.292],[2010.333,0.246],[2010.417,0.193],[2010.5,0.236],[2010.583,0.193],[2010.667,0.246],[2010.75,0.265],[2010.833,0.274],[2010.917,0.326],[2011.0,0.342],[2011.083,0.365],[2011.167,0.365],[2011.25,0.373],[2011.333,0.358],[2011.417,0.334],[2011.5,0.318],[2011.583,0.255],[2011.667,0.17],[2011.75,0.255],[2011.833,0.246],[2011.917,0.225],[2012.0,0.274],[2012.083,0.301],[2012.167,0.301],[2012.25,0.283],[2012.333,0.215],[2012.417,0.236],[2012.5,0.225],[2012.583,0.246],[2012.667,0.265],[2012.75,0.265],[2012.833,0.274],[2012.917,0.301],[2013.0,0.326],[2013.083,0.318],[2013.167,0.334],[2013.25,0.334],[2013.333,0.365],[2013.417,0.358],[2013.5,0.373],[2013.583,0.358],[2013.667,0.387],[2013.75,0.408],[2013.833,0.428],[2013.917,0.453],[2014.0,0.435],[2014.083,0.459],[2014.167,0.453],[2014.25,0.453],[2014.333,0.459],[2014.417,0.483],[2014.5,0.471],[2014.583,0.494],[2014.667,0.483],[2014.75,0.494],[2014.833,0.5],[2014.917,0.494],[2015.0,0.477],[2015.083,0.516],[2015.167,0.505],[2015.25,0.521],[2015.333,0.505],[2015.417,0.494],[2015.5,0.471],[2015.583,0.441],[2015.667,0.408],[2015.75,0.453],[2015.833,0.459],[2015.917,0.428],[2016.0,0.365],[2016.083,0.358],[2016.167,0.401],[2016.25,0.428],[2016.333,0.428],[2016.417,0.415],[2016.5,0.435],[2016.583,0.453],[2016.667,0.471],[2016.75,0.453],[2016.833,0.516],[2016.917,0.516],[2017.0,0.526],[2017.083,0.537],[2017.167,0.537],[2017.25,0.526],[2017.333,0.521],[2017.417,0.531],[2017.5,0.547],[2017.583,0.537],[2017.667,0.561],[2017.75,0.575],[2017.833,0.584],[2017.917,0.598],[2018.0,0.627],[2018.083,0.615],[2018.167,0.611],[2018.25,0.598],[2018.333,0.623],[2018.417,0.619],[2018.5,0.627],[2018.583,0.647],[2018.667,0.647],[2018.75,0.58],[2018.833,0.58],[2018.917,0.531],[2019.0,0.593],[2019.083,0.615],[2019.167,0.619],[2019.25,0.643],[2019.333,0.584],[2019.417,0.627],[2019.5,0.627],[2019.583,0.598],[2019.667,0.606],[2019.75,0.619],[2019.833,0.639],[2019.917,0.674],[2020.0,0.651],[2020.083,0.611],[2020.167,0.483],[2020.25,0.584],[2020.333,0.589],[2020.417,0.619],[2020.5,0.623],[2020.583,0.651],[2020.667,0.627],[2020.75,0.631],[2020.833,0.732],[2020.917,0.766],[2021.0,0.763],[2021.083,0.848],[2021.167,0.86],[2021.25,0.881],[2021.333,0.899],[2021.417,0.903],[2021.5,0.897],[2021.583,0.912],[2021.667,0.903],[2021.75,0.93],[2021.833,0.926],[2021.917,0.932],[2022.0,0.894],[2022.083,0.89],[2022.167,0.901],[2022.25,0.85],[2022.333,0.852],[2022.417,0.787],[2022.5,0.848],[2022.583,0.825],[2022.667,0.781],[2022.75,0.809],[2022.833,0.845],[2022.917,0.803],[2023.0,0.857],[2023.083,0.855],[2023.167,0.857],[2023.25,0.827],[2023.333,0.845],[2023.417,0.89],[2023.5,0.922],[2023.583,0.899],[2023.667,0.865],[2023.75,0.825],[2023.833,0.888],[2023.917,0.939],[2024.0,0.928],[2024.083,0.96],[2024.167,0.98],[2024.25,0.95],[2024.333,0.973],[2024.417,0.995],[2024.5,0.993],[2024.583,0.995],[2024.667,1.015],[2024.75,1.007],[2024.833,1.03],[2024.917,1.014],[2025.0,1.032],[2025.083,0.993],[2025.167,0.943],[2025.25,0.969],[2025.333,1.033],[2025.417,1.092],[2025.5,1.126],[2025.583,1.128],[2025.667,1.167],[2025.75,1.196],[2025.833,1.18],[2025.917,1.196],[2026.0,1.239],[2026.083,1.254],[2026.167,1.236],[2026.25,1.348],[2026.333,1.413],[2026.417,1.463],[2026.5,1.349],[2026.583,1.361],[2026.667,1.395]];
+var LVG=[[1994.417,0.0],[1994.5,0.0],[1994.583,0.017],[1994.667,0.017],[1994.75,0.017],[1994.833,0.0],[1994.917,0.017],[1995.0,0.033],[1995.083,0.033],[1995.167,0.049],[1995.25,0.049],[1995.333,0.064],[1995.417,0.064],[1995.5,0.079],[1995.583,0.079],[1995.667,0.107],[1995.75,0.107],[1995.833,0.121],[1995.917,0.134],[1996.0,0.146],[1996.083,0.146],[1996.167,0.146],[1996.25,0.134],[1996.333,0.146],[1996.417,0.158],[1996.5,0.134],[1996.583,0.146],[1996.667,0.146],[1996.75,0.158],[1996.833,0.182],[1996.917,0.182],[1997.0,0.182],[1997.083,0.193],[1997.167,0.182],[1997.25,0.182],[1997.333,0.204],[1997.417,0.225],[1997.5,0.236],[1997.583,0.225],[1997.667,0.246],[1997.75,0.246],[1997.833,0.265],[1997.917,0.283],[1998.0,0.265],[1998.083,0.283],[1998.167,0.301],[1998.25,0.292],[1998.333,0.283],[1998.417,0.292],[1998.5,0.274],[1998.583,0.255],[1998.667,0.283],[1998.75,0.283],[1998.833,0.301],[1998.917,0.301],[1999.0,0.283],[1999.083,0.265],[1999.167,0.255],[1999.25,0.292],[1999.333,0.31],[1999.417,0.301],[1999.5,0.292],[1999.583,0.292],[1999.667,0.274],[1999.75,0.292],[1999.833,0.265],[1999.917,0.255],[2000.0,0.255],[2000.083,0.204],[2000.167,0.246],[2000.25,0.274],[2000.333,0.283],[2000.417,0.274],[2000.5,0.274],[2000.583,0.31],[2000.667,0.342],[2000.75,0.334],[2000.833,0.358],[2000.917,0.387],[2001.0,0.358],[2001.083,0.38],[2001.167,0.373],[2001.25,0.387],[2001.333,0.401],[2001.417,0.394],[2001.5,0.387],[2001.583,0.394],[2001.667,0.38],[2001.75,0.373],[2001.833,0.38],[2001.917,0.394],[2002.0,0.394],[2002.083,0.401],[2002.167,0.422],[2002.25,0.422],[2002.333,0.422],[2002.417,0.408],[2002.5,0.387],[2002.583,0.394],[2002.667,0.358],[2002.75,0.373],[2002.833,0.373],[2002.917,0.373],[2003.0,0.365],[2003.083,0.358],[2003.167,0.358],[2003.25,0.38],[2003.333,0.401],[2003.417,0.401],[2003.5,0.401],[2003.583,0.408],[2003.667,0.408],[2003.75,0.428],[2003.833,0.435],[2003.917,0.453],[2004.0,0.453],[2004.083,0.471],[2004.167,0.471],[2004.25,0.465],[2004.333,0.471],[2004.417,0.471],[2004.5,0.465],[2004.583,0.477],[2004.667,0.477],[2004.75,0.489],[2004.833,0.5],[2004.917,0.511],[2005.0,0.505],[2005.083,0.505],[2005.167,0.505],[2005.25,0.505],[2005.333,0.516],[2005.417,0.516],[2005.5,0.526],[2005.583,0.521],[2005.667,0.521],[2005.75,0.516],[2005.833,0.526],[2005.917,0.526],[2006.0,0.531],[2006.083,0.542],[2006.167,0.542],[2006.25,0.547],[2006.333,0.547],[2006.417,0.551],[2006.5,0.556],[2006.583,0.571],[2006.667,0.575],[2006.75,0.589],[2006.833,0.593],[2006.917,0.602],[2007.0,0.602],[2007.083,0.602],[2007.167,0.606],[2007.25,0.619],[2007.333,0.623],[2007.417,0.606],[2007.5,0.584],[2007.583,0.598],[2007.667,0.611],[2007.75,0.615],[2007.833,0.615],[2007.917,0.611],[2008.0,0.584],[2008.083,0.575],[2008.167,0.58],[2008.25,0.58],[2008.333,0.589],[2008.417,0.561],[2008.5,0.575],[2008.583,0.589],[2008.667,0.575],[2008.75,0.531],[2008.833,0.511],[2008.917,0.521],[2009.0,0.511],[2009.083,0.465],[2009.167,0.483],[2009.25,0.489],[2009.333,0.5],[2009.417,0.516],[2009.5,0.531],[2009.583,0.537],[2009.667,0.547],[2009.75,0.551],[2009.833,0.575],[2009.917,0.589],[2010.0,0.575],[2010.083,0.584],[2010.167,0.598],[2010.25,0.602],[2010.333,0.58],[2010.417,0.58],[2010.5,0.602],[2010.583,0.602],[2010.667,0.619],[2010.75,0.631],[2010.833,0.627],[2010.917,0.643],[2011.0,0.639],[2011.083,0.651],[2011.167,0.659],[2011.25,0.678],[2011.333,0.688],[2011.417,0.681],[2011.5,0.674],[2011.583,0.678],[2011.667,0.674],[2011.75,0.692],[2011.833,0.695],[2011.917,0.713],[2012.0,0.702],[2012.083,0.709],[2012.167,0.719],[2012.25,0.726],[2012.333,0.726],[2012.417,0.745],[2012.5,0.757],[2012.583,0.748],[2012.667,0.754],[2012.75,0.754],[2012.833,0.754],[2012.917,0.751],[2013.0,0.775],[2013.083,0.792],[2013.167,0.814],[2013.25,0.83],[2013.333,0.809],[2013.417,0.812],[2013.5,0.83],[2013.583,0.812],[2013.667,0.82],[2013.75,0.838],[2013.833,0.843],[2013.917,0.848],[2014.0,0.835],[2014.083,0.848],[2014.167,0.857],[2014.25,0.872],[2014.333,0.874],[2014.417,0.881],[2014.5,0.867],[2014.583,0.881],[2014.667,0.881],[2014.75,0.903],[2014.833,0.914],[2014.917,0.918],[2015.0,0.914],[2015.083,0.926],[2015.167,0.924],[2015.25,0.918],[2015.333,0.922],[2015.417,0.914],[2015.5,0.932],[2015.583,0.912],[2015.667,0.912],[2015.75,0.939],[2015.833,0.943],[2015.917,0.944],[2016.0,0.937],[2016.083,0.944],[2016.167,0.969],[2016.25,0.964],[2016.333,0.971],[2016.417,0.998],[2016.5,0.995],[2016.583,0.984],[2016.667,0.98],[2016.75,0.975],[2016.833,0.979],[2016.917,0.988],[2017.0,0.991],[2017.083,1.01],[2017.167,1.01],[2017.25,1.015],[2017.333,1.025],[2017.417,1.024],[2017.5,1.03],[2017.583,1.032],[2017.667,1.035],[2017.75,1.045],[2017.833,1.058],[2017.917,1.046],[2018.0,1.052],[2018.083,1.037],[2018.167,1.041],[2018.25,1.045],[2018.333,1.043],[2018.417,1.051],[2018.5,1.064],[2018.583,1.07],[2018.667,1.07],[2018.75,1.064],[2018.833,1.091],[2018.917,1.063],[2019.0,1.091],[2019.083,1.104],[2019.167,1.117],[2019.25,1.123],[2019.333,1.127],[2019.417,1.14],[2019.5,1.142],[2019.583,1.16],[2019.667,1.167],[2019.75,1.162],[2019.833,1.155],[2019.917,1.162],[2020.0,1.183],[2020.083,1.14],[2020.167,1.081],[2020.25,1.114],[2020.333,1.134],[2020.417,1.134],[2020.5,1.167],[2020.583,1.18],[2020.667,1.169],[2020.75,1.157],[2020.833,1.18],[2020.917,1.188],[2021.0,1.177],[2021.083,1.168],[2021.167,1.2],[2021.25,1.216],[2021.333,1.22],[2021.417,1.217],[2021.5,1.231],[2021.583,1.238],[2021.667,1.218],[2021.75,1.238],[2021.833,1.229],[2021.917,1.27],[2022.0,1.256],[2022.083,1.246],[2022.167,1.27],[2022.25,1.265],[2022.333,1.268],[2022.417,1.247],[2022.5,1.265],[2022.583,1.256],[2022.667,1.214],[2022.75,1.241],[2022.833,1.264],[2022.917,1.256],[2023.0,1.25],[2023.083,1.236],[2023.167,1.249],[2023.25,1.262],[2023.333,1.239],[2023.417,1.253],[2023.5,1.254],[2023.583,1.246],[2023.667,1.227],[2023.75,1.227],[2023.833,1.251],[2023.917,1.26],[2024.0,1.269],[2024.083,1.281],[2024.167,1.292],[2024.25,1.28],[2024.333,1.287],[2024.417,1.289],[2024.5,1.305],[2024.583,1.328],[2024.667,1.329],[2024.75,1.325],[2024.833,1.349],[2024.917,1.321],[2025.0,1.332],[2025.083,1.355],[2025.167,1.361],[2025.25,1.354],[2025.333,1.354],[2025.417,1.348],[2025.5,1.351],[2025.583,1.357],[2025.667,1.363],[2025.75,1.346],[2025.833,1.362],[2025.917,1.349],[2026.0,1.364],[2026.083,1.394],[2026.167,1.375],[2026.25,1.383],[2026.333,1.368],[2026.417,1.388],[2026.5,1.386],[2026.583,1.371],[2026.667,1.347]];
+var HBDD=[[1994.417,-7.7],[1994.5,-3.8],[1994.583,0.0],[1994.667,-3.7],[1994.75,-3.7],[1994.833,-7.4],[1994.917,-3.7],[1995.0,-7.4],[1995.083,0.0],[1995.167,0.0],[1995.25,0.0],[1995.333,-3.2],[1995.417,-3.0],[1995.5,0.0],[1995.583,-2.9],[1995.667,-5.4],[1995.75,-8.1],[1995.833,-8.1],[1995.917,-13.5],[1996.0,-10.8],[1996.083,-5.4],[1996.167,-10.8],[1996.25,-2.7],[1996.333,-2.6],[1996.417,-5.3],[1996.5,-13.2],[1996.583,-10.5],[1996.667,-2.6],[1996.75,-5.0],[1996.833,0.0],[1996.917,-7.0],[1997.0,-2.2],[1997.083,-6.4],[1997.167,-12.8],[1997.25,-4.3],[1997.333,0.0],[1997.417,-3.8],[1997.5,0.0],[1997.583,-6.7],[1997.667,-1.6],[1997.75,-10.9],[1997.833,-7.8],[1997.917,-7.8],[1998.0,-4.7],[1998.083,0.0],[1998.167,0.0],[1998.25,-1.4],[1998.333,-6.7],[1998.417,-1.3],[1998.5,-7.4],[1998.583,-28.4],[1998.667,-18.5],[1998.75,-7.4],[1998.833,-3.5],[1998.917,0.0],[1999.0,0.0],[1999.083,-6.5],[1999.167,-0.9],[1999.25,-5.8],[1999.333,-10.0],[1999.417,0.0],[1999.5,-10.1],[1999.583,-8.5],[1999.667,-9.3],[1999.75,0.0],[1999.833,-4.5],[1999.917,0.0],[2000.0,-8.2],[2000.083,0.0],[2000.167,-6.5],[2000.25,-15.6],[2000.333,-23.8],[2000.417,-13.9],[2000.5,-18.2],[2000.583,-2.2],[2000.667,-15.2],[2000.75,-23.4],[2000.833,-47.2],[2000.917,-47.6],[2001.0,-41.1],[2001.083,-65.4],[2001.167,-74.0],[2001.25,-64.9],[2001.333,-67.1],[2001.417,-66.7],[2001.5,-71.4],[2001.583,-77.5],[2001.667,-87.9],[2001.75,-81.8],[2001.833,-76.6],[2001.917,-76.2],[2002.0,-75.8],[2002.083,-81.0],[2002.167,-77.1],[2002.25,-81.8],[2002.333,-84.0],[2002.417,-89.2],[2002.5,-91.8],[2002.583,-92.6],[2002.667,-96.1],[2002.75,-93.1],[2002.833,-88.7],[2002.917,-91.8],[2003.0,-92.2],[2003.083,-91.8],[2003.167,-91.8],[2003.25,-89.2],[2003.333,-86.1],[2003.417,-87.0],[2003.5,-86.6],[2003.583,-83.5],[2003.667,-85.3],[2003.75,-82.3],[2003.833,-81.0],[2003.917,-81.0],[2004.0,-80.1],[2004.083,-80.5],[2004.167,-81.4],[2004.25,-83.5],[2004.333,-81.8],[2004.417,-81.0],[2004.5,-84.0],[2004.583,-85.3],[2004.667,-84.4],[2004.75,-83.1],[2004.833,-81.0],[2004.917,-80.1],[2005.0,-81.8],[2005.083,-81.4],[2005.167,-82.7],[2005.25,-84.0],[2005.333,-82.3],[2005.417,-82.3],[2005.5,-80.5],[2005.583,-81.0],[2005.667,-80.5],[2005.75,-81.0],[2005.833,-79.7],[2005.917,-79.7],[2006.0,-76.2],[2006.083,-77.1],[2006.167,-75.8],[2006.25,-75.3],[2006.333,-77.1],[2006.417,-77.1],[2006.5,-78.8],[2006.583,-78.4],[2006.667,-77.9],[2006.75,-76.2],[2006.833,-74.5],[2006.917,-75.3],[2007.0,-74.5],[2007.083,-74.5],[2007.167,-73.6],[2007.25,-71.9],[2007.333,-70.1],[2007.417,-71.4],[2007.5,-71.9],[2007.583,-72.7],[2007.667,-70.6],[2007.75,-71.4],[2007.833,-74.0],[2007.917,-75.3],[2008.0,-77.5],[2008.083,-78.4],[2008.167,-79.7],[2008.25,-78.4],[2008.333,-77.9],[2008.417,-82.3],[2008.5,-83.1],[2008.583,-83.1],[2008.667,-84.8],[2008.75,-87.4],[2008.833,-89.6],[2008.917,-88.7],[2009.0,-90.0],[2009.083,-91.8],[2009.167,-90.9],[2009.25,-88.7],[2009.333,-87.0],[2009.417,-87.0],[2009.5,-86.1],[2009.583,-84.4],[2009.667,-83.1],[2009.75,-84.4],[2009.833,-83.1],[2009.917,-82.7],[2010.0,-82.7],[2010.083,-81.8],[2010.167,-79.7],[2010.25,-78.8],[2010.333,-81.0],[2010.417,-83.1],[2010.5,-81.4],[2010.583,-83.1],[2010.667,-81.0],[2010.75,-80.1],[2010.833,-79.7],[2010.917,-77.1],[2011.0,-76.2],[2011.083,-74.9],[2011.167,-74.9],[2011.25,-74.5],[2011.333,-75.3],[2011.417,-76.6],[2011.5,-77.5],[2011.583,-80.5],[2011.667,-84.0],[2011.75,-80.5],[2011.833,-81.0],[2011.917,-81.8],[2012.0,-79.7],[2012.083,-78.4],[2012.167,-78.4],[2012.25,-79.2],[2012.333,-82.3],[2012.417,-81.4],[2012.5,-81.8],[2012.583,-81.0],[2012.667,-80.1],[2012.75,-80.1],[2012.833,-79.7],[2012.917,-78.4],[2013.0,-77.1],[2013.083,-77.5],[2013.167,-76.6],[2013.25,-76.6],[2013.333,-74.9],[2013.417,-75.3],[2013.5,-74.5],[2013.583,-75.3],[2013.667,-73.6],[2013.75,-72.3],[2013.833,-71.0],[2013.917,-69.3],[2014.0,-70.6],[2014.083,-68.8],[2014.167,-69.3],[2014.25,-69.3],[2014.333,-68.8],[2014.417,-67.1],[2014.5,-68.0],[2014.583,-66.2],[2014.667,-67.1],[2014.75,-66.2],[2014.833,-65.8],[2014.917,-66.2],[2015.0,-67.5],[2015.083,-64.5],[2015.167,-65.4],[2015.25,-64.1],[2015.333,-65.4],[2015.417,-66.2],[2015.5,-68.0],[2015.583,-70.1],[2015.667,-72.3],[2015.75,-69.3],[2015.833,-68.8],[2015.917,-71.0],[2016.0,-74.9],[2016.083,-75.3],[2016.167,-72.7],[2016.25,-71.0],[2016.333,-71.0],[2016.417,-71.9],[2016.5,-70.6],[2016.583,-69.3],[2016.667,-68.0],[2016.75,-69.3],[2016.833,-64.5],[2016.917,-64.5],[2017.0,-63.6],[2017.083,-62.8],[2017.167,-62.8],[2017.25,-63.6],[2017.333,-64.1],[2017.417,-63.2],[2017.5,-61.9],[2017.583,-62.8],[2017.667,-60.6],[2017.75,-59.3],[2017.833,-58.4],[2017.917,-57.1],[2018.0,-54.1],[2018.083,-55.4],[2018.167,-55.8],[2018.25,-57.1],[2018.333,-54.5],[2018.417,-55.0],[2018.5,-54.1],[2018.583,-51.9],[2018.667,-51.9],[2018.75,-58.9],[2018.833,-58.9],[2018.917,-63.2],[2019.0,-57.6],[2019.083,-55.4],[2019.167,-55.0],[2019.25,-52.4],[2019.333,-58.4],[2019.417,-54.1],[2019.5,-54.1],[2019.583,-57.1],[2019.667,-56.3],[2019.75,-55.0],[2019.833,-52.8],[2019.917,-48.9],[2020.0,-51.5],[2020.083,-55.8],[2020.167,-67.1],[2020.25,-58.4],[2020.333,-58.0],[2020.417,-55.0],[2020.5,-54.5],[2020.583,-51.5],[2020.667,-54.1],[2020.75,-53.7],[2020.833,-41.6],[2020.917,-36.8],[2021.0,-37.2],[2021.083,-23.8],[2021.167,-21.6],[2021.25,-17.7],[2021.333,-14.3],[2021.417,-13.4],[2021.5,-14.7],[2021.583,-11.7],[2021.667,-13.4],[2021.75,-7.8],[2021.833,-8.7],[2021.917,-7.4],[2022.0,-15.2],[2022.083,-16.0],[2022.167,-13.9],[2022.25,-23.4],[2022.333,-22.9],[2022.417,-33.8],[2022.5,-23.8],[2022.583,-27.7],[2022.667,-34.6],[2022.75,-30.3],[2022.833,-24.2],[2022.917,-31.2],[2023.0,-22.1],[2023.083,-22.5],[2023.167,-22.1],[2023.25,-27.3],[2023.333,-24.2],[2023.417,-16.0],[2023.5,-9.5],[2023.583,-14.3],[2023.667,-20.8],[2023.75,-27.7],[2023.833,-16.5],[2023.917,-6.1],[2024.0,-8.2],[2024.083,-1.3],[2024.167,0.0],[2024.25,-6.7],[2024.333,-2.5],[2024.417,-2.0],[2024.5,-5.7],[2024.583,-5.4],[2024.667,-0.8],[2024.75,-6.3],[2024.833,-1.8],[2024.917,-5.8],[2025.0,-6.9],[2025.083,-14.9],[2025.167,-24.2],[2025.25,-19.4],[2025.333,-6.6],[2025.417,0.0],[2025.5,-1.2],[2025.583,-2.3],[2025.667,-1.1],[2025.75,-1.0],[2025.833,-4.8],[2025.917,-3.4],[2026.0,-3.8],[2026.083,-2.8],[2026.167,-6.9],[2026.25,0.0],[2026.333,0.0],[2026.417,-1.8],[2026.5,-24.4],[2026.583,-22.3],[2026.667,-16.0]];
+var LVDD=[[1994.417,0.0],[1994.5,0.0],[1994.583,0.0],[1994.667,0.0],[1994.75,0.0],[1994.833,-3.8],[1994.917,0.0],[1995.0,0.0],[1995.083,0.0],[1995.167,0.0],[1995.25,0.0],[1995.333,0.0],[1995.417,-3.3],[1995.5,0.0],[1995.583,0.0],[1995.667,0.0],[1995.75,0.0],[1995.833,0.0],[1995.917,0.0],[1996.0,0.0],[1996.083,-2.8],[1996.167,-2.8],[1996.25,-5.6],[1996.333,-2.8],[1996.417,0.0],[1996.5,-5.6],[1996.583,-2.8],[1996.667,-2.8],[1996.75,0.0],[1996.833,0.0],[1996.917,0.0],[1997.0,-2.6],[1997.083,-2.5],[1997.167,-5.0],[1997.25,-5.0],[1997.333,0.0],[1997.417,0.0],[1997.5,0.0],[1997.583,-2.3],[1997.667,0.0],[1997.75,-2.2],[1997.833,0.0],[1997.917,0.0],[1998.0,-4.2],[1998.083,0.0],[1998.167,0.0],[1998.25,-3.9],[1998.333,-5.9],[1998.417,-3.9],[1998.5,-7.8],[1998.583,-11.8],[1998.667,-5.9],[1998.75,-5.9],[1998.833,-2.0],[1998.917,-2.0],[1999.0,-5.9],[1999.083,-9.8],[1999.167,-11.8],[1999.25,-3.9],[1999.333,0.0],[1999.417,-2.0],[1999.5,-3.9],[1999.583,-3.9],[1999.667,-7.8],[1999.75,-3.9],[1999.833,-9.8],[1999.917,-11.8],[2000.0,-11.8],[2000.083,-21.6],[2000.167,-13.7],[2000.25,-7.8],[2000.333,-5.9],[2000.417,-7.8],[2000.5,-7.8],[2000.583,0.0],[2000.667,0.0],[2000.75,-1.8],[2000.833,0.0],[2000.917,0.0],[2001.0,-6.6],[2001.083,-1.6],[2001.167,-3.3],[2001.25,0.0],[2001.333,0.0],[2001.417,-1.6],[2001.5,-3.2],[2001.583,-1.6],[2001.667,-4.8],[2001.75,-6.3],[2001.833,-4.8],[2001.917,-1.6],[2002.0,-1.6],[2002.083,0.0],[2002.167,0.0],[2002.25,-1.5],[2002.333,-1.5],[2002.417,-4.5],[2002.5,-9.0],[2002.583,-7.5],[2002.667,-14.9],[2002.75,-11.9],[2002.833,-11.9],[2002.917,-11.9],[2003.0,-13.4],[2003.083,-14.9],[2003.167,-14.9],[2003.25,-10.4],[2003.333,-6.0],[2003.417,-6.0],[2003.5,-6.0],[2003.583,-4.5],[2003.667,-4.5],[2003.75,0.0],[2003.833,0.0],[2003.917,0.0],[2004.0,-1.4],[2004.083,0.0],[2004.167,-1.3],[2004.25,-2.7],[2004.333,-1.3],[2004.417,-1.3],[2004.5,-2.7],[2004.583,0.0],[2004.667,-1.3],[2004.75,0.0],[2004.833,-1.2],[2004.917,0.0],[2005.0,-1.2],[2005.083,-1.2],[2005.167,-2.4],[2005.25,-2.4],[2005.333,0.0],[2005.417,-1.2],[2005.5,0.0],[2005.583,-1.2],[2005.667,-1.2],[2005.75,-2.4],[2005.833,-1.2],[2005.917,-1.2],[2006.0,-1.2],[2006.083,-1.1],[2006.167,-2.2],[2006.25,-1.1],[2006.333,-1.1],[2006.417,0.0],[2006.5,-1.1],[2006.583,0.0],[2006.667,-1.1],[2006.75,0.0],[2006.833,0.0],[2006.917,-1.0],[2007.0,-1.0],[2007.083,-2.9],[2007.167,-1.9],[2007.25,-1.0],[2007.333,-0.9],[2007.417,-4.7],[2007.5,-9.4],[2007.583,-6.6],[2007.667,-3.8],[2007.75,-2.8],[2007.833,-2.8],[2007.917,-3.8],[2008.0,-9.4],[2008.083,-11.3],[2008.167,-10.4],[2008.25,-10.4],[2008.333,-8.5],[2008.417,-14.2],[2008.5,-11.3],[2008.583,-8.5],[2008.667,-11.3],[2008.75,-19.8],[2008.833,-23.6],[2008.917,-21.7],[2009.0,-23.6],[2009.083,-31.1],[2009.167,-28.3],[2009.25,-27.4],[2009.333,-25.5],[2009.417,-22.6],[2009.5,-19.8],[2009.583,-18.9],[2009.667,-17.0],[2009.75,-16.0],[2009.833,-11.3],[2009.917,-8.5],[2010.0,-11.3],[2010.083,-9.4],[2010.167,-6.6],[2010.25,-5.7],[2010.333,-10.4],[2010.417,-10.4],[2010.5,-5.7],[2010.583,-5.7],[2010.667,-1.9],[2010.75,0.0],[2010.833,-2.8],[2010.917,0.0],[2011.0,-1.8],[2011.083,0.0],[2011.167,0.0],[2011.25,0.0],[2011.333,0.0],[2011.417,-1.6],[2011.5,-3.3],[2011.583,-2.5],[2011.667,-3.3],[2011.75,-0.8],[2011.833,0.0],[2011.917,-0.8],[2012.0,-3.1],[2012.083,-1.5],[2012.167,0.0],[2012.25,0.0],[2012.333,-0.7],[2012.417,0.0],[2012.5,0.0],[2012.583,-2.1],[2012.667,-0.7],[2012.75,-2.1],[2012.833,-2.1],[2012.917,-2.8],[2013.0,0.0],[2013.083,0.0],[2013.167,0.0],[2013.25,0.0],[2013.333,-5.3],[2013.417,-4.7],[2013.5,-0.6],[2013.583,-5.3],[2013.667,-3.5],[2013.75,-1.1],[2013.833,-1.1],[2013.917,0.0],[2014.0,-2.8],[2014.083,0.0],[2014.167,0.0],[2014.25,0.0],[2014.333,0.0],[2014.417,-0.5],[2014.5,-3.7],[2014.583,-0.5],[2014.667,-0.5],[2014.75,0.0],[2014.833,0.0],[2014.917,-1.4],[2015.0,-3.8],[2015.083,-0.9],[2015.167,-1.4],[2015.25,-2.8],[2015.333,-1.9],[2015.417,-3.8],[2015.5,0.0],[2015.583,-6.4],[2015.667,-6.4],[2015.75,-0.9],[2015.833,-0.5],[2015.917,-1.3],[2016.0,-3.1],[2016.083,-1.3],[2016.167,-0.4],[2016.25,-2.1],[2016.333,-0.8],[2016.417,0.0],[2016.5,-1.2],[2016.583,-3.6],[2016.667,-4.4],[2016.75,-5.6],[2016.833,-4.8],[2016.917,-2.8],[2017.0,-2.0],[2017.083,-0.4],[2017.167,-1.2],[2017.25,-0.4],[2017.333,0.0],[2017.417,-2.6],[2017.5,-1.1],[2017.583,-0.7],[2017.667,-0.4],[2017.75,-0.4],[2017.833,0.0],[2017.917,-2.8],[2018.0,-1.4],[2018.083,-4.9],[2018.167,-3.8],[2018.25,-3.1],[2018.333,-3.5],[2018.417,-1.7],[2018.5,0.0],[2018.583,-1.0],[2018.667,-2.0],[2018.75,-3.3],[2018.833,0.0],[2018.917,-6.5],[2019.0,-0.3],[2019.083,0.0],[2019.167,-0.3],[2019.25,0.0],[2019.333,-0.9],[2019.417,-1.7],[2019.5,-2.0],[2019.583,0.0],[2019.667,-0.3],[2019.75,-1.4],[2019.833,-3.0],[2019.917,-1.4],[2020.0,-0.5],[2020.083,-12.2],[2020.167,-23.4],[2020.25,-17.3],[2020.333,-13.5],[2020.417,-13.5],[2020.5,-6.6],[2020.583,-3.8],[2020.667,-6.1],[2020.75,-8.7],[2020.833,-3.8],[2020.917,-2.0],[2021.0,-4.3],[2021.083,-6.4],[2021.167,-1.2],[2021.25,-0.7],[2021.333,-1.7],[2021.417,-2.4],[2021.5,-0.5],[2021.583,-0.9],[2021.667,-5.3],[2021.75,-0.9],[2021.833,-3.2],[2021.917,0.0],[2022.0,-3.0],[2022.083,-5.2],[2022.167,-0.4],[2022.25,-5.0],[2022.333,-4.3],[2022.417,-8.7],[2022.5,-5.0],[2022.583,-6.8],[2022.667,-15.5],[2022.75,-10.1],[2022.833,-5.2],[2022.917,-6.8],[2023.0,-8.1],[2023.083,-11.2],[2023.167,-8.3],[2023.25,-5.6],[2023.333,-10.5],[2023.417,-7.4],[2023.5,-7.2],[2023.583,-9.1],[2023.667,-12.8],[2023.75,-12.8],[2023.833,-7.9],[2023.917,-6.0],[2024.0,-4.1],[2024.083,-1.4],[2024.167,0.0],[2024.25,-2.9],[2024.333,-1.2],[2024.417,-1.8],[2024.5,-0.4],[2024.583,0.0],[2024.667,-0.7],[2024.75,-3.5],[2024.833,0.0],[2024.917,-6.1],[2025.0,-3.8],[2025.083,0.0],[2025.167,0.0],[2025.25,-1.6],[2025.333,-1.6],[2025.417,-3.0],[2025.5,-2.3],[2025.583,-1.7],[2025.667,-0.3],[2025.75,-4.3],[2025.833,-0.7],[2025.917,-3.6],[2026.0,-0.2],[2026.083,0.0],[2026.167,-4.4],[2026.25,-2.6],[2026.333,-6.0],[2026.417,-1.5],[2026.5,-3.0],[2026.583,-6.4],[2026.667,-11.3]];
+
+drawAll();
+</script>
+</body>
+</html>
