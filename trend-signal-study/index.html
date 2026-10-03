@@ -163,6 +163,13 @@ footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
   .method li b{padding-top:8px}
 }
 
+/* ---- paper link ---- */
+.paper{margin:18px 0 0; padding:12px 16px; border:1px solid var(--hair); border-left:3px solid var(--safe);
+  background:var(--surface); border-radius:8px; font-size:14px; line-height:1.5; color:var(--ink-2)}
+.paper .lab{display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:3px}
+.paper a{color:var(--safe); text-underline-offset:2px}
+
 /* ---- site nav (Backtest Forensics) ---- */
 .bf-nav{position:sticky; top:0; z-index:9; background:var(--surface); border-bottom:1px solid var(--hair);
   font-family:"IBM Plex Mono",ui-monospace,monospace}
@@ -201,6 +208,7 @@ footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
     <span>1988&ndash;2026</span>
     <span>Norgate + FRED</span>
   </div>
+  <p class="paper"><span class="lab">Full paper</span>The research behind this post is on SSRN: <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7429179" rel="noopener">Which Trend Signal? Price versus Slope on Diversified Asset-Class Baskets</a> &rarr;</p>
 </header>
 
 <section class="measure">
