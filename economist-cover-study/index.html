@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Is The Economist's Cover Always a Fade? · Backtest Forensics</title>
+<meta name="description" content="Is The Economist's cover always a fade? 124 covers read back to 1999: gloomy covers returned the same as an average week, because covers mostly describe the market that just happened. The pattern that holds is about timing: early warnings were right, late descriptions marked the lows.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:site_name" content="Backtest Forensics">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Is The Economist's cover always a fade? One saying, one rabbit hole deeper.">
+<meta property="og:description" content="124 covers since 1999. Gloomy covers were followed by the same returns as any week. They follow the market rather than lead it, and the ones published deep in a drawdown were right only 12% of the time at 12 months.">
+<meta property="og:image" content="https://ben.to/economist-cover-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Is The Economist's cover always a fade? One saying, one rabbit hole deeper.">
+<meta name="twitter:description" content="Bearish covers: +9.6% over 12 months vs +9.8% after any issue. The cover is a mirror, not a forecast.">
+<meta name="twitter:image" content="https://ben.to/economist-cover-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--claim) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--claim) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+
+/* ---- site nav (Backtest Forensics) ---- */
+.bf-nav{position:sticky; top:0; z-index:9; background:var(--surface); border-bottom:1px solid var(--hair);
+  font-family:"IBM Plex Mono",ui-monospace,monospace}
+.bf-nav .in{max-width:1000px; margin:0 auto; padding:0 64px 0 22px; height:60px; display:flex; align-items:center; gap:26px}
+.bf-nav .brand{font-family:"Newsreader",Georgia,serif; font-size:21px; font-weight:500; letter-spacing:-.01em;
+  color:var(--ink); text-decoration:none; white-space:nowrap}
+.bf-nav .brand em{color:var(--claim); font-style:italic}
+.bf-nav .links{display:flex; gap:20px; margin-left:auto}
+.bf-nav .links a{font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-2);
+  text-decoration:none; padding:6px 0; border-bottom:2px solid transparent}
+.bf-nav .links a:hover{color:var(--ink)}
+.bf-nav .links a[aria-current]{color:var(--ink); border-bottom-color:var(--claim)}
+.bf-nav a:focus-visible{outline:2px solid var(--safe); outline-offset:3px}
+.bf-nav .brand .by{font-weight:400}.bf-nav .brand .sep{margin:0 .5em;color:var(--hair);font-weight:300}
+@media (max-width:560px){.bf-nav .brand{font-size:15px}}
+.toggle{top:11px !important}
+@media (max-width:560px){.bf-nav .in{gap:14px; padding-left:16px} .bf-nav .brand{font-size:18px} .bf-nav .links{gap:14px}}
+</style>
+</head>
+<body>
+<nav class="bf-nav" aria-label="Site"><div class="in"><a class="brand" href="../"><span class="by">Bento Analytics</span><span class="sep">|</span>Backtest <em>Forensics</em></a><div class="links"><a href="../" aria-current="page">Studies</a><a href="../market_dashboard.html">Dashboard</a></div></div></nav>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A magazine-cover rabbit hole · Oct 2026</p>
+  <h1>Is The Economist&rsquo;s cover <em>always</em> a fade?</h1>
+  <p class="dek">There&rsquo;s an old saying that when a major magazine puts a market worry on its cover, you should bet the other way. It&rsquo;s a fun idea and it has a kernel of truth. So I pulled every <em>Economist</em> cover back to 1999, read the artwork, picked out the 124 that made a call on markets or the economy, and checked what the asset in question actually did next.</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>S&amp;P 500 &middot; sector, bond, FX proxies</span>
+    <span>1999&ndash;2026 &middot; 124 covers</span>
+    <span>Norgate Data</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Credit where it&rsquo;s due: the instinct is a good one. A cover is a bet on what readers are already thinking, and by the time an editor commissions an illustration of a market worry, it is usually a crowded worry. Contrarian investors have leaned on that logic for decades, and the saying survives because a few covers have looked, in hindsight, like they marked an extreme.</p>
+
+  <p>But &ldquo;always a fade&rdquo; is a precise claim: buy after a gloomy cover, sell after a happy one, and you should beat a random week. That&rsquo;s testable. I scored 93 bearish covers, 17 bullish ones and set aside 14 that turned out not to be market calls at all. The honest result is that the cover is a better <em>mirror</em> than a <em>signal</em>.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">S&amp;P 500, 12 months after a bearish cover</p>
+      <div class="big c-safe">+9.6%</div>
+      <p class="sub">Versus +9.8% after the average issue of the magazine. Nothing to fade, nothing to follow (n=88).</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Bearish covers that came after a falling quarter</p>
+      <div class="big c-claim">57%</div>
+      <p class="sub">Versus 31% of all issues. The cover describes the market that just happened.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">Gloomy covers right at 12 months, deep in a bear</p>
+      <div class="big c-crit">12%</div>
+      <p class="sub">26 covers implying &ldquo;down&rdquo; while the S&amp;P sat 20% or more below its high. Three were right.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>What I scored, and one correction</h2>
+  <p>I pulled The Economist&rsquo;s weekly archive for every issue from 1999 through this week (1,398 issues), then read the actual cover artwork for the ones I flagged as market-relevant. The pull-through taught me something: my first pass labelled covers from their <em>headlines</em>, and on the first 67 images seven of those turned out not to be market calls at all. &ldquo;This is going to hurt&rdquo; was US health care, &ldquo;Perfect?&rdquo; was human cloning, &ldquo;Going, going&hellip;&rdquo; was Gaddafi. The saved US-edition covers also differ from the UK headlines for some weeks (&ldquo;Africa rising&rdquo; where the archive says &ldquo;Into the storm&rdquo;). Reading the pictures mattered.</p>
+  <p>The final set is 124 covers read by image: <strong>93 bearish, 17 bullish, 14 not about markets</strong>. Each is scored against the S&amp;P 500 total return from the Friday close before the issue date, 1, 3, 6 and 12 months out, against every other issue as the baseline.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">02</span>The headline answer: no fade</h2>
+  <p>If gloom were a buy signal, bearish covers would be followed by better-than-average returns. They aren&rsquo;t. Bearish covers track the average issue at every horizon, give or take a rounding error.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>S&amp;P 500 total return after a bearish cover vs any issue</caption>
+      <thead><tr><th>Horizon</th><th>Bearish n</th><th>After bearish cover</th><th>After any issue</th><th>Excess</th></tr></thead>
+      <tbody>
+        <tr><td>1 month</td><td>92</td><td>+0.8%</td><td>+0.8%</td><td>&minus;0.0</td></tr>
+        <tr><td>3 months</td><td>92</td><td>+2.1%</td><td>+2.4%</td><td>&minus;0.3</td></tr>
+        <tr><td>6 months</td><td>92</td><td>+5.0%</td><td>+4.9%</td><td>+0.1</td></tr>
+        <tr class="mark"><td>12 months</td><td>88</td><td>+9.6%</td><td>+9.8%</td><td>&minus;0.2</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>A gloomy cover is a coin flip, not a buy signal</h3>
+    <p class="csub">Average S&amp;P 500 total return after the cover</p>
+    <div class="legend">
+      <span><i style="background:var(--claim)"></i>After a bearish cover</span>
+      <span><i style="background:var(--safe)"></i>After any issue</span>
+    </div>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>Counting one cover per distinct episode (55 of them) doesn&rsquo;t help: 12-month return after a bearish cover is +8.8%, still no better than the +9.8% for any issue. The bullish covers (n=17) show a 1-month return of &minus;1.1% that looks like a fade, but it is almost entirely one cover: &ldquo;Big tech&rsquo;s $2trn bull run&rdquo; ran on 22 Feb 2020 and was followed by a 33% drop in a month. Without it the number is ~0%.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">03</span>The cover is a mirror, not a forecast</h2>
+  <p>So why does the fade <em>feel</em> right? Because covers are very good at describing what just happened. Look at what the market did in the quarter <em>before</em> each cover. Bearish covers appear after drops; bullish ones after rallies.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Covers follow the market</h3>
+    <p class="csub">Average S&amp;P 500 return in the 3 months <em>before</em> the cover</p>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>The prior quarter averaged +2.4% for a typical issue, &minus;3.0% before a bearish cover and +6.1% before a bullish one (the bearish gap is highly significant, p&lt;0.0001). 57% of bearish covers followed a down quarter, against 31% of all issues; only 6% of bullish covers did. A &ldquo;fade&rdquo; needs the cover to lead; the data says it trails.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>There is one thing a gloomy cover does tell you, and it&rsquo;s about <em>risk</em>, not direction. In the three months after a bearish cover, 36% of the time the S&amp;P suffered a drawdown worse than &minus;10%, against 22% for a typical issue. That&rsquo;s not foresight so much as volatility clustering: worried covers show up when markets are already stressed, and stress persists.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Bearish covers arrive in stressed markets</h3>
+    <p class="csub">Chance of a worse-than-&minus;10% drawdown within 3 months of the cover</p>
+    <div class="chart" id="chart3"></div>
+  </div>
+  <figcaption>36% after bearish covers vs 22% for a typical issue (an unadjusted test, p=0.003). Bullish covers (n=17) show 12%. It reads best as a stress gauge: the cover arrives when the weather has already turned.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">04</span>Judge each cover against its own asset</h2>
+  <p>The S&amp;P is a blunt yardstick when a cover is about China, or banks, or the bond market. So I re-scored 37 of them against the asset each one is actually about: <code>FXI</code> for &ldquo;The Great Fall of China,&rdquo; <code>KBE</code> and <code>XLF</code> for the bank covers, <code>EZU</code> for the euro crisis, <code>TLT</code> and <code>IEF</code> for the inflation and rates covers, <code>ITB</code> for housing, <code>QQQ</code> for tech, <code>GBTC</code> for crypto. &ldquo;Right&rdquo; means the asset moved the way the cover implied; the baseline is that asset&rsquo;s own history.</p>
+  <p>Covers do a bit better here, at calling <em>direction</em>: 59% right at 6 months against a 44% chance level (p=0.046). But the <em>return</em> advantage is small and not significant (+2.9 points at 6 months, p=0.25) and gone by 12 months (&minus;1.3). They call more moves right, but the misses and the rebounds are larger.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Topic covers: % right against each asset group</caption>
+      <thead><tr><th>Group</th><th>n</th><th>3 months</th><th>6 months</th><th>12 months</th></tr></thead>
+      <tbody>
+        <tr class="mark"><td>Rates and inflation (<code>TLT</code>, <code>IEF</code>)</td><td>8</td><td>75%</td><td>75%</td><td>71%</td></tr>
+        <tr><td>Banks and financials</td><td>6</td><td>50%</td><td>67%</td><td>67%</td></tr>
+        <tr><td>EM, Asia, China</td><td>5</td><td>60%</td><td>80%</td><td>60%</td></tr>
+        <tr><td>Dollar and FX</td><td>3</td><td>67%</td><td>67%</td><td>33%</td></tr>
+        <tr><td>Europe and the euro</td><td>6</td><td>50%</td><td>50%</td><td>33%</td></tr>
+        <tr><td>Housing</td><td>4</td><td>50%</td><td>25%</td><td>50%</td></tr>
+        <tr><td>Tech and telecom</td><td>4</td><td>25%</td><td>50%</td><td>25%</td></tr>
+        <tr><td>Crypto</td><td>1</td><td>0%</td><td>0%</td><td>0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted)">Group sizes are tiny and clustered. The rates and inflation covers look best but all but two came during the 2020&ndash;25 hiking cycle, one regime, not eight independent tests. The euro covers are all 2011&ndash;12.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">05</span>When the cover is wrong, and when it&rsquo;s right</h2>
+  <p>The pattern that does hold up isn&rsquo;t &ldquo;always a fade.&rdquo; It&rsquo;s that <em>where</em> in the market cycle the cover appears matters. I split every cover by how far the S&amp;P was below its all-time high on the day it ran.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Covers are least reliable when they&rsquo;re most pessimistic</h3>
+    <p class="csub">% of covers right against their own asset, by how far the S&amp;P is below its high</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>3 months</span>
+      <span><i style="background:var(--claim)"></i>6 months</span>
+      <span><i style="background:var(--crit)"></i>12 months</span>
+    </div>
+    <div class="chart" id="chart4"></div>
+  </div>
+  <figcaption>Bear market = S&amp;P 20%+ below its high (n=30); correction = 10&ndash;20% (n=26); near highs = within 10% (n=53). &ldquo;Right&rdquo; is the covers&rsquo; call against the asset. Gloomy covers published deep in a drawdown were right only 12% of the time at 12 months (3 of 26); the same covers near highs were right 46%. Bullish covers near highs were right 11 of 12 times at 12 months. &ldquo;Bear market&rdquo; here means far below the old high, including slow recoveries like 2003&ndash;04.</figcaption>
+</figure>
+
+<section class="measure">
+  <p>Look at the covers that were wrong and a theme emerges: the worry marks the bottom. These came out at the point of maximum fear, and the asset then rebounded harder than the cover could imagine.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Four covers that marked a bottom, four that were right on the money</caption>
+      <thead><tr><th>Cover</th><th>Asset</th><th>Implied</th><th>12 months later</th></tr></thead>
+      <tbody>
+        <tr class="mark"><td>&ldquo;Into the storm&rdquo; (Oct 2008)</td><td><code>EEM</code></td><td>down</td><td class="hi">+108%</td></tr>
+        <tr class="mark"><td>&ldquo;Inside the banks&rdquo; (Jan 2009)</td><td><code>KBE</code></td><td>down</td><td class="hi">+66%</td></tr>
+        <tr class="mark"><td>&ldquo;A house-price horror show&rdquo; (Oct 2022)</td><td><code>ITB</code></td><td>down</td><td class="hi">+40%</td></tr>
+        <tr class="mark"><td>&ldquo;Crypto&rsquo;s downfall&rdquo; (Nov 2022)</td><td><code>GBTC</code></td><td>down</td><td class="hi">+250%*</td></tr>
+        <tr><td>&ldquo;WALL STREET&rdquo; (Mar 2008)</td><td><code>XLF</code></td><td>down</td><td class="lo">&minus;68%</td></tr>
+        <tr><td>&ldquo;The trouble with the housing market&rdquo; (Mar 2007)</td><td><code>ITB</code></td><td>down</td><td class="lo">&minus;42%</td></tr>
+        <tr><td>&ldquo;If Greece goes&hellip;&rdquo; (Jun 2011)</td><td><code>EZU</code></td><td>down</td><td class="lo">&minus;26%</td></tr>
+        <tr><td>&ldquo;How high will interest rates go?&rdquo; (Feb 2022)</td><td><code>TLT</code></td><td>down</td><td class="lo">&minus;23%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted)">*<code>GBTC</code> is a rough crypto proxy; part of that move is its discount to bitcoin narrowing.</p>
+
+  <div class="callout">
+    <p>The right covers ran <em>before</em> the damage (housing in March 2007, Wall Street in March 2008). The wrong ones ran <em>after</em> it, when the bad news was already in the price. Whether a gloomy cover is a warning or a bottom depends on whether the drop already happened.</p>
+    <span class="who">Early warnings were right. Late descriptions marked the lows.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">06</span>And this week&rsquo;s cover?</h2>
+  <p>The 10 October 2026 issue asks <strong>&ldquo;Will bonds blow up?&rdquo;</strong> It&rsquo;s too new to score, and I&rsquo;ve only read the headline, not the artwork. But the framework gives a way to place it. The proxy is long Treasuries (<code>TLT</code>) and the cover implies &ldquo;down.&rdquo; The market regime is near highs: the S&amp;P sits 0.7% below its all-time high, where gloomy covers have been right about 44&ndash;46% of the time, roughly a coin flip.</p>
+  <p>The bond-specific record looks stronger on paper (8 rates and inflation covers, 71&ndash;75% right) but those came inside the 2020&ndash;25 hiking cycle, when yields were rising anyway. And this cover arrives late: <code>TLT</code> is already 15.8% below its two-year high, down 4.3% in the last month, and under its 200-day average. Covers that followed a big drop in their own asset are the ones that tended to mark turning points. Covers that ran early in a move, like &ldquo;Will inflation return?&rdquo; in Dec 2020, were the ones that kept being right. So this one could be a late description or a mid-trend call; the data can&rsquo;t separate those two readings. I would not weight the cover itself much either way.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">07</span>The honest bottom line</h2>
+  <p>The saying survives with its aim corrected. A gloomy Economist cover isn&rsquo;t a reliable buy signal: bearish covers returned the same as an average week, and the headline 1-month &ldquo;fade&rdquo; on bullish covers came down to a single issue. What covers <em>do</em> carry is information about the recent past (they follow drops and rallies) and about current stress (bigger drawdowns follow). Against the specific asset a cover is about, direction is called a little better than chance at 3&ndash;6 months, but the return edge is small, clustered in a few regimes, and gone by a year.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Covers</b><span>All weekly issues 1999&ndash;Oct 2026 from The Economist&rsquo;s archive; 124 selected as market or economy calls and classified bullish, bearish or not-market by reading the cover artwork (shuffled, index-only contact sheets). Labels are my judgment and are subjective.</span></li>
+    <li><b>Baseline</b><span>S&amp;P 500 total return (Norgate <code>$SPXTR</code>) from the last close on or before the issue date; 1, 3, 6, 12 months = 21, 63, 126, 252 trading days. Baseline is every issue 1999+; significance by permutation against random same-size draws.</span></li>
+    <li><b>Asset proxies</b><span>37 covers scored against a topic proxy (Norgate ETFs and indexes: <code>FXI</code>, <code>KBE</code>, <code>XLF</code>, <code>EZU</code>, <code>TLT</code>, <code>IEF</code>, <code>ITB</code>, <code>QQQ</code>, <code>$NDX</code>, <code>IYZ</code>, <code>FXE</code>, <code>UUP</code>, <code>GBTC</code> and others); the rest on <code>SPY</code>. Chance level is each proxy&rsquo;s own up-or-down base rate.</span></li>
+    <li><b>Regimes</b><span>S&amp;P total-return drawdown from its all-time high on the cover date: bear &le;&minus;20%, correction &minus;10 to &minus;20%, near highs &gt;&minus;10%.</span></li>
+    <li><b>Caveats</b><span>Small samples (17 bullish covers; about 5&ndash;8 per proxy group), clustered crises, about 30 tests run, so a few p-values near 0.05 are expected by chance. Archive thumbnails were unreliable and headline-only labelling mis-scored some covers, so the final labels come from the images.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes the old saying wrong to enjoy. A magazine cover really is a snapshot of what the room is worried about, and that is worth knowing. Chasing it one rabbit hole deeper just changes what the snapshot is good for: it&rsquo;s a mirror of the last few months and a gauge of stress, not a way to guess the next few.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">@droskill</b>. Stock, ETF and index prices from Norgate Data; analysis in Python (norgatedata + pandas). Cover artwork is not reproduced here.</div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index and total-return data, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('econcover-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('econcover-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- flexible vertical bars (signed or unsigned, zero baseline) ----------
+function vbars(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=o.cats, vals=o.values, colors=o.colors;
+  var ymin=o.ymin, ymax=o.ymax, step=o.step, dec=(o.dec==null?1:o.dec);
+  var unit=o.unit||'', sign=(o.sign!==false);
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  function fmt(v){return (sign&&v>0?'+':'')+v.toFixed(dec)+unit;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    var gl=(Math.abs(g-Math.round(g))<1e-9?g.toFixed(0):g.toFixed(dec<2?1:2));
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(sign&&g>0?'+':'')+gl+unit+'</text>';
+  }
+  var y0=y(Math.max(ymin,0));
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 66);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+fmt(v)+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+fmt(v)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- grouped bars (two series, unsigned) ----------
+function groupedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, series=opts.series, ymax=opts.ymax, ymin=opts.ymin||0, unit=opts.unit||'%', sg=(opts.sign!==false), ldec=(opts.ldec==null?0:opts.ldec);
+  var W=920,H=360,mL=44,mR=14,mT=20,mB=46, pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  var step=opts.ystep||10;
+  for(var g=ymin; g<=ymax+0.001; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+g+unit+'</text>';
+  }
+  var yzero=y(0);
+  svg+='<line x1="'+mL+'" y1="'+yzero+'" x2="'+(W-mR)+'" y2="'+yzero+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, ns=series.length;
+  var inner=gw*0.64, bw=Math.min(inner/ns-4, 46);
+  var totalBars=ns*bw+(ns-1)*6, startOff=(gw-totalBars)/2;
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw;
+    svg+='<text x="'+(gx+gw/2)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+    for(var s=0;s<ns;s++){
+      var v=series[s].values[i], bx=gx+startOff+s*(bw+6);
+      var by=Math.min(y(v),yzero), bh=Math.abs(y(v)-yzero);
+      var col=cssvar(series[s].colorVar);
+      svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(bh,0.5).toFixed(1)+'" rx="3" fill="'+col+'" '
+         +'data-tip="'+cats[i]+' &middot; '+series[s].name+': <b>'+(sg&&v>=0?'+':'')+v.toFixed(1)+unit+'</b>"></rect>';
+      var ly=by-6;
+      svg+='<text x="'+(bx+bw/2)+'" y="'+ly+'" fill="'+col+'" font-size="12" font-weight="600" text-anchor="middle">'+(sg&&v>=0?'+':'')+v.toFixed(ldec)+'</text>';
+    }
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- time-series line(s) with zero baseline + optional era bands ----------
+
+function drawAll(){
+  groupedBars('#chart1',{
+    cats:['1 month','3 months','6 months','12 months'],
+    series:[
+      {name:'After bearish cover', colorVar:'--claim', values:[0.8,2.1,5.0,9.6]},
+      {name:'After any issue', colorVar:'--safe', values:[0.8,2.4,4.9,9.8]}
+    ],
+    ymin:0, ymax:12, ystep:3, unit:'%', ldec:1,
+    aria:'S&P 500 return after bearish covers versus any issue: nearly identical at every horizon'
+  });
+  vbars('#chart2',{
+    cats:['Any issue','Before a bearish cover','Before a bullish cover'],
+    values:[2.4,-3.0,6.1],
+    colors:['--muted','--crit','--pos'],
+    ymin:-4, ymax:8, step:2, unit:'%', dec:1, sign:true,
+    aria:'S&P 500 return in the 3 months before the cover: negative before bearish covers, positive before bullish ones'
+  });
+  vbars('#chart3',{
+    cats:['Any issue','After a bearish cover','After a bullish cover'],
+    values:[22,36,12],
+    colors:['--muted','--crit','--pos'],
+    ymin:0, ymax:40, step:10, unit:'%', dec:0, sign:false,
+    aria:'Chance of a drawdown worse than 10 percent within 3 months: 22 percent any issue, 36 percent after bearish covers'
+  });
+  groupedBars('#chart4',{
+    cats:['Bear market (n=30)','Correction (n=26)','Near highs (n=53)'],
+    series:[
+      {name:'3 months', colorVar:'--safe', values:[43,46,49]},
+      {name:'6 months', colorVar:'--claim', values:[37,50,57]},
+      {name:'12 months', colorVar:'--crit', values:[20,42,57]}
+    ],
+    ymin:0, ymax:70, ystep:10, unit:'%', sign:false, ldec:0,
+    aria:'Percent of covers right by market regime: lowest in bear markets, highest near highs'
+  });
+}
+drawAll();
+</script>
+</body>
+</html>
