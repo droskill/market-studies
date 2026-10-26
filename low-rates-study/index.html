@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does the stock market like low rates? · Backtest Forensics</title>
+<meta name="description" content="Low rates are supposed to be rocket fuel for stocks and cuts a buy signal. Splitting 38 years of S&P 500 returns by rate level and direction flips the reflex: stocks did best with rates high (4-6%) and flat, and worst while the Fed was cutting — because cuts come when the economy is breaking.">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:site_name" content="Backtest Forensics">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Does the stock market like low rates? One maxim, one rabbit hole deeper.">
+<meta property="og:description" content="38 years of S&P 500 returns by rate environment. Best when rates were high (4-6%) and flat; worst while the Fed was cutting. 'Low rates good, cuts are a buy' gets the record backwards.">
+<meta property="og:image" content="https://ben.to/low-rates-study/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Does the stock market like low rates? One maxim, one rabbit hole deeper.">
+<meta name="twitter:description" content="Flat rates: +17.5%/yr. High rates (4-6%): +18.1%. While the Fed cut: +5.8%, the weakest and most volatile regime. The market likes a strong economy, not low rates.">
+<meta name="twitter:image" content="https://ben.to/low-rates-study/og-cover.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme: light;
+  --plane:#e8eaec; --surface:#f7f8f9; --surface-2:#eef0f2;
+  --ink:#14171a; --ink-2:#494e54; --muted:#7f838a;
+  --hair:#d6d9dc; --grid:#e2e4e7; --baseline:#c7cacd;
+  --claim:#d1521f; --safe:#2565c2; --crit:#c0392f; --pos:#12896a;
+  --accent:#1b1e21;
+  --shadow: 0 1px 2px rgba(20,23,26,.05), 0 8px 30px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+    --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+    --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+    --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+    --accent:#eef0f1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0c0e10; --surface:#15181b; --surface-2:#1b1f22;
+  --ink:#eef0f1; --ink-2:#b4b9be; --muted:#7c8188;
+  --hair:#262a2e; --grid:#232629; --baseline:#33383d;
+  --claim:#e0603a; --safe:#4d92e8; --crit:#e15a51; --pos:#20b184;
+  --accent:#eef0f1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:17px; line-height:1.65; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 22px}
+.measure{max-width:680px}
+
+header{padding:60px 0 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+}
+h1{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(2.5rem, 6.5vw, 4rem); line-height:1.02; letter-spacing:-.015em;
+  margin:0 0 22px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink-2); font-weight:500}
+.dek{
+  font-family:"Newsreader", Georgia, serif; font-size:clamp(1.15rem,2.6vw,1.4rem);
+  line-height:1.5; color:var(--ink-2); max-width:640px; margin:0; font-weight:400;
+}
+.byline{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-top:30px; padding-top:20px; border-top:1px solid var(--hair);
+  font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--muted);
+}
+.byline b{color:var(--ink-2); font-weight:500}
+
+section{padding:14px 0}
+h2{
+  font-family:"Newsreader", Georgia, serif; font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.05rem); line-height:1.12; letter-spacing:-.01em;
+  margin:44px 0 6px; text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono", monospace; font-size:.62em; color:var(--safe);
+  font-weight:500; margin-right:.6em; letter-spacing:0;
+}
+p{margin:0 0 20px}
+p .measure, .measure p{max-width:680px}
+a{color:var(--safe); text-underline-offset:2px; text-decoration-thickness:1px}
+strong{font-weight:600}
+.lead{font-size:1.06em}
+
+.tiles{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px;
+}
+.tile{
+  background:var(--surface); border:1px solid var(--hair); border-radius:12px;
+  padding:20px 18px; box-shadow:var(--shadow);
+}
+.tile .lab{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 10px; line-height:1.3;
+}
+.tile .big{
+  font-family:"Newsreader", Georgia, serif; font-size:2.6rem; line-height:1;
+  font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+.tile .sub{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.4}
+.c-claim{color:var(--claim)} .c-safe{color:var(--safe)} .c-crit{color:var(--crit)} .c-pos{color:var(--pos)}
+
+figure{margin:34px 0; }
+@media(min-width:940px){
+  .breakout{width:min(920px,92vw); margin-left:calc(360px - min(920px,92vw)/2)}
+}
+.card{
+  background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+  padding:22px 20px 16px; box-shadow:var(--shadow);
+}
+.card h3{
+  margin:0 0 3px; font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:1.06rem; letter-spacing:-.01em;
+}
+.card .csub{margin:0 0 14px; font-size:13px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:2px 0 6px}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+figcaption{
+  font-size:13.5px; color:var(--muted); margin-top:14px; line-height:1.5;
+  font-family:"IBM Plex Sans",sans-serif; max-width:680px;
+}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.bar{transition:opacity .12s}
+.chart:hover .bar{opacity:.42}
+.chart .bar:hover{opacity:1}
+text{font-family:"IBM Plex Mono", monospace}
+
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:12px;
+}
+th,td{padding:9px 12px; text-align:right; font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--hair)}
+th:first-child,td:first-child{text-align:left; font-variant-numeric:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1.5px solid var(--baseline);
+}
+tbody tr:hover{background:var(--surface-2)}
+td.hi{color:var(--claim); font-weight:600}
+td.lo{color:var(--pos); font-weight:600}
+tr.mark td{background:color-mix(in srgb, var(--claim) 9%, transparent)}
+tr.mark:hover td{background:color-mix(in srgb, var(--claim) 14%, transparent)}
+tr.tot td{border-top:1.5px solid var(--baseline); font-weight:600; border-bottom:none}
+tr.tot td:first-child{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+
+.callout{
+  border-left:3px solid var(--safe); background:var(--surface);
+  padding:18px 22px; border-radius:0 10px 10px 0; margin:30px 0;
+  box-shadow:var(--shadow);
+}
+.callout p{margin:0; font-family:"Newsreader",Georgia,serif; font-size:1.22rem;
+  line-height:1.45; color:var(--ink)}
+.callout .who{display:block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; color:var(--muted); letter-spacing:.04em}
+
+.method{
+  background:var(--surface-2); border:1px solid var(--hair); border-radius:14px;
+  padding:24px 22px; margin:34px 0;
+}
+.method h3{margin:0 0 14px; font-size:.95rem; font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.method ul{margin:0; padding:0; list-style:none}
+.method li{padding:9px 0; border-bottom:1px solid var(--hair); font-size:14.5px;
+  color:var(--ink-2); display:grid; grid-template-columns:130px 1fr; gap:14px}
+.method li:last-child{border-bottom:none}
+.method li b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  font-weight:600; padding-top:1px}
+.method code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--surface); padding:1px 5px; border-radius:4px; border:1px solid var(--hair)}
+
+footer{border-top:1px solid var(--hair); margin-top:56px; padding:34px 0 70px;
+  font-size:13.5px; color:var(--muted); line-height:1.6}
+footer a{font-family:"IBM Plex Mono",monospace; font-size:13px}
+.disc{font-size:12px; margin-top:18px; color:var(--muted); max-width:680px}
+
+.toggle{
+  position:fixed; top:16px; right:16px; z-index:10;
+  width:38px; height:38px; border-radius:10px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--hair); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  font-size:16px;
+}
+.toggle:focus-visible{outline:2px solid var(--safe); outline-offset:2px}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--plane); font-family:"IBM Plex Mono",monospace;
+  font-size:12px; padding:7px 10px; border-radius:7px; z-index:20; white-space:nowrap;
+  transform:translate(-50%,-125%); box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr; gap:10px}
+  .tile .big{font-size:2.3rem}
+  .method li{grid-template-columns:1fr; gap:2px}
+  .method li b{padding-top:8px}
+}
+
+/* ---- site nav (Backtest Forensics) ---- */
+.bf-nav{position:sticky; top:0; z-index:9; background:var(--surface); border-bottom:1px solid var(--hair);
+  font-family:"IBM Plex Mono",ui-monospace,monospace}
+.bf-nav .in{max-width:1000px; margin:0 auto; padding:0 64px 0 22px; height:60px; display:flex; align-items:center; gap:26px}
+.bf-nav .brand{font-family:"Newsreader",Georgia,serif; font-size:21px; font-weight:500; letter-spacing:-.01em;
+  color:var(--ink); text-decoration:none; white-space:nowrap}
+.bf-nav .brand em{color:var(--claim); font-style:italic}
+.bf-nav .links{display:flex; gap:20px; margin-left:auto}
+.bf-nav .links a{font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-2);
+  text-decoration:none; padding:6px 0; border-bottom:2px solid transparent}
+.bf-nav .links a:hover{color:var(--ink)}
+.bf-nav .links a[aria-current]{color:var(--ink); border-bottom-color:var(--claim)}
+.bf-nav a:focus-visible{outline:2px solid var(--safe); outline-offset:3px}
+.bf-nav .brand .by{font-weight:400}.bf-nav .brand .sep{margin:0 .5em;color:var(--hair);font-weight:300}
+@media (max-width:560px){.bf-nav .brand{font-size:15px}}
+.toggle{top:11px !important}
+@media (max-width:560px){.bf-nav .in{gap:14px; padding-left:16px} .bf-nav .brand{font-size:18px} .bf-nav .links{gap:14px}}
+</style>
+</head>
+<body>
+<nav class="bf-nav" aria-label="Site"><div class="in"><a class="brand" href="../"><span class="by">Bento Analytics</span><span class="sep">|</span>Backtest <em>Forensics</em></a><div class="links"><a href="../" aria-current="page">Studies</a><a href="../market_dashboard.html">Dashboard</a></div></div></nav>
+
+<button class="toggle" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◑</button>
+<div id="tip" role="status"></div>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A rate-cycle rabbit hole · Oct 2026</p>
+  <h1>Does the stock market like <em>low</em> rates?</h1>
+  <p class="dek">There&rsquo;s a reflex in markets: low rates are rocket fuel for stocks, high rates are a headwind, and when the Fed starts cutting you buy. I split 38 years of S&amp;P 500 returns by what rates were doing &mdash; their level and their direction &mdash; and the reflex gets two of three backwards.</p>
+  <div class="byline">
+    <span><b>@droskill</b></span>
+    <span>S&amp;P 500 &middot; Nasdaq-100</span>
+    <span>1988&ndash;2026</span>
+    <span>Norgate Data</span>
+  </div>
+</header>
+
+<section class="measure">
+  <p class="lead">Credit where it&rsquo;s due: the mechanism is real. Lower rates cut the discount on future earnings, make bonds less competitive, and ease financial conditions &mdash; all tailwinds for equities. &ldquo;Don&rsquo;t fight the Fed&rdquo; earned its place as the market&rsquo;s most-repeated maxim because the Fed really does move the cost of money, and the cost of money really does move asset prices.</p>
+
+  <p>But the maxim bundles three different things &mdash; the <em>level</em> of rates, the <em>direction</em> of rates, and the act of <em>cutting</em> &mdash; and treats them as one. Pull them apart on 38 years of data and the picture inverts: stocks did best when rates sat high and still, and worst in the one environment the reflex says to buy, while the Fed was cutting.</p>
+</section>
+
+<section>
+  <div class="tiles">
+    <div class="tile">
+      <p class="lab">S&amp;P 500 per year when rates were flat</p>
+      <div class="big c-pos">+17.5%</div>
+      <p class="sub">The market&rsquo;s favorite environment isn&rsquo;t low rates &mdash; it&rsquo;s stable ones. Flat-rate stretches since 1988 returned nearly double the long-run average, at the lowest volatility.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">The environment the reflex says to buy</p>
+      <div class="big c-crit">weakest</div>
+      <p class="sub">While the Fed was cutting, the S&amp;P returned +5.8% a year since 1988 &mdash; its lowest and most volatile regime &mdash; and &minus;3.4% in the QQQ era. Cuts come when something broke.</p>
+    </div>
+    <div class="tile">
+      <p class="lab">S&amp;P 500 per year with rates at 4&ndash;6%</p>
+      <div class="big c-safe">+18.1%</div>
+      <p class="sub">High rate levels were the market&rsquo;s best, not its worst. High rates mean a strong economy, and stocks follow the economy.</p>
+    </div>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">01</span>Three environments, two ways to slice</h2>
+  <p>&ldquo;What rates are doing&rdquo; isn&rsquo;t one thing. A 5% rate on the way up is a different world from 5% on the way down. So I sliced the S&amp;P two ways, both off the 3-month Treasury yield as a Fed-policy stand-in. <strong>By direction:</strong> is the rate higher, lower or flat versus six months ago, with a quarter-point buffer each way. <strong>By level:</strong> is the rate low (under 2%), middling (2&ndash;4%), high (4&ndash;6%) or very high (above 6%). The window is 1988 to today &mdash; the span of the S&amp;P total-return series &mdash; which covers the 7&ndash;9% rates of the late &rsquo;80s, the long zero-rate 2010s, and the 2022&ndash;23 round trip.</p>
+</section>
+
+<section class="measure">
+  <h2><span class="num">02</span>Direction: flat wins, cutting loses</h2>
+  <p>Rank the three by return and the reflex is already in trouble. Flat-rate regimes returned <strong>+17.5% a year</strong>; rising rates +8.1%; and cutting &mdash; the supposed buy signal &mdash; just <strong>+5.8%</strong>, with the highest volatility of the three (17.6% against about 13%). The market&rsquo;s best environment is the boring one, rates sitting still. Its worst is the one everyone is taught to buy.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>S&amp;P 500 annualized total return by Fed rate direction</caption>
+      <thead><tr><th>Direction</th><th>Months</th><th>1988&ndash;2026</th><th>Volatility</th><th>1999&ndash;2026 (QQQ era)</th></tr></thead>
+      <tbody>
+        <tr><td>Raising</td><td>126</td><td>+8.1%</td><td>13.1%</td><td>+5.7%</td></tr>
+        <tr class="mark"><td>Flat</td><td>205</td><td>+17.5%</td><td>13.1%</td><td>+16.5%</td></tr>
+        <tr><td>Cutting</td><td>134</td><td>+5.8%</td><td>17.6%</td><td>&minus;3.4%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>The market&rsquo;s best environment is flat rates, not low ones</h3>
+    <p class="csub">S&amp;P 500 annualized total return by rate direction, 1988&ndash;2026</p>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <figcaption>The ranking is stable, but the gap is not: in the QQQ era (1999 on) cutting returned &minus;3.4%, far worse than the +5.8% since 1988. That&rsquo;s the next section &mdash; the cutting number depends heavily on which crises the window happens to catch.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">03</span>The cutting trap</h2>
+  <p>Why does cutting look so bad, and why does the number swing so much? Because the Fed cuts for a reason, and the reason is usually that the economy is breaking. The cutting months since 1999 are dot-com (2001), the financial crisis (2008) and the pandemic (2020) &mdash; three of the worst equity markets on record. Stretch back to 1988 and you add the gentler easings of 1989&ndash;92, 1995 and 1998, and the cutting return climbs from &minus;3.4% to +5.8%. Same signal, very different outcome, depending on whether the cut was a soft-landing adjustment or a crisis response.</p>
+  <p>The Nasdaq makes the point louder. Across both indices the ranking is identical &mdash; flat best, cutting worst &mdash; but the Nasdaq&rsquo;s swings are wider: +18% in flat regimes against the S&amp;P&rsquo;s +16%, with a deeper hole and far more volatility while the Fed eases.</p>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Both indices rank the same: flat best, cutting worst</h3>
+    <p class="csub">Annualized total return by rate direction, 1999&ndash;2026</p>
+    <div class="legend">
+      <span><i style="background:var(--safe)"></i>S&amp;P 500</span>
+      <span><i style="background:var(--claim)"></i>Nasdaq-100</span>
+    </div>
+    <div class="chart" id="chart3"></div>
+  </div>
+  <figcaption>1999&ndash;2026, where both total-return indices exist. The Nasdaq out-returns the S&amp;P in every direction (the subject of the <a href="../nasdaq-rates-study/">companion study</a>) but with much more volatility &mdash; 31% annualized in cutting regimes against the S&amp;P&rsquo;s 19%. &ldquo;The Fed is cutting&rdquo; has been a warning about volatility more than a promise of returns.</figcaption>
+</figure>
+
+<section class="measure">
+  <h2><span class="num">04</span>Level: high rates are good for stocks</h2>
+  <p>Now slice by the <em>level</em> of rates instead of their direction, and the second half of the reflex &mdash; &ldquo;high rates are bad for stocks&rdquo; &mdash; falls apart too. The S&amp;P&rsquo;s best rate environment since 1988 was <strong>4&ndash;6%: +18.1% a year</strong>, at the lowest volatility and the highest hit rate (70% of months positive). Even above 6% &mdash; the 7&ndash;9% world of 1988&ndash;91 plus the 2000 peak &mdash; stocks compounded at +11.9%, above their long-run average. Low rates (under 2%) returned a middling +7.9%, because near-zero rates show up either in a calm bull <em>or</em> in the depths of a crisis.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>S&amp;P 500 by rate level, 1988&ndash;2026</caption>
+      <thead><tr><th>Rate level</th><th>Months</th><th>Return/yr</th><th>Volatility</th><th>Positive months</th></tr></thead>
+      <tbody>
+        <tr><td>Low (&lt;2%)</td><td>197</td><td>+7.9%</td><td>15.7%</td><td>65%</td></tr>
+        <tr><td>Mid (2&ndash;4%)</td><td>78</td><td>+8.2%</td><td>13.8%</td><td>63%</td></tr>
+        <tr class="mark"><td>High (4&ndash;6%)</td><td>149</td><td>+18.1%</td><td>13.2%</td><td>70%</td></tr>
+        <tr><td>Very high (&gt;6%)</td><td>41</td><td>+11.9%</td><td>15.0%</td><td>56%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="breakout">
+  <div class="card">
+    <h3>Stocks&rsquo; best rate level is high, not low</h3>
+    <p class="csub">S&amp;P 500 annualized total return by rate level, 1988&ndash;2026</p>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <figcaption>High rate levels coincide with strong, late-cycle economies, and stocks track the economy. The &ldquo;high rates are poison&rdquo; intuition is really about the <em>transition</em> &mdash; the hiking shock &mdash; not the level. Once rates are simply high and stable, the economy underneath them is usually doing fine.</figcaption>
+</figure>
+
+<section class="measure">
+  <div class="callout">
+    <p>The market doesn&rsquo;t reward cheap money; it rewards a healthy economy. High-and-stable rates are the <em>sign</em> of one. A cutting Fed is the sign of the opposite &mdash; which is why the one environment the reflex says to buy has been the worst to own.</p>
+    <span class="who">Rates are a symptom of the economy, and stocks follow the economy.</span>
+  </div>
+</section>
+
+<section class="measure">
+  <h2><span class="num">05</span>The honest bottom line</h2>
+  <p>So does the stock market like low rates? Not especially. It likes a strong economy, and it likes rates to hold still. Over 38 years the best returns came with rates high (4&ndash;6%) and flat; the worst came while the Fed was cutting, because cutting is what the Fed does when the economy is in trouble. The popular version of &ldquo;don&rsquo;t fight the Fed&rdquo; &mdash; buy when they cut, fear high rates &mdash; gets the contemporaneous record backwards. The caution, as always: this is what returns <em>were</em> during each environment, not a signal. Markets routinely bottom in the middle of a cutting cycle, precisely when the trailing numbers look worst. The Fed tells you the weather, not the forecast.</p>
+</section>
+
+<div class="method measure">
+  <h3>Receipts</h3>
+  <ul>
+    <li><b>Indices</b><span>S&amp;P 500 total return (Norgate <code>$SPXTR</code>, from 1988); Nasdaq-100 total return (<code>$NDXTR</code>, from 1999) for the two-index comparison. Monthly closes.</span></li>
+    <li><b>Rate regime</b><span>3-month constant-maturity Treasury yield (<code>%3MTCM</code>). Direction = its change over the trailing 6 months, &gt;+0.25% raising / &lt;&minus;0.25% cutting / else flat. Level = the yield itself, bucketed &lt;2 / 2&ndash;4 / 4&ndash;6 / &gt;6%.</span></li>
+    <li><b>Returns</b><span>Monthly total return, compounded (geometric) to an annual figure within each bucket; volatility = monthly standard deviation &times; &radic;12; &ldquo;positive months&rdquo; = share of months up.</span></li>
+    <li><b>Caveats</b><span>Contemporaneous and descriptive, not predictive. The cutting bucket is dominated by a few recessions, so its return is window-sensitive (&minus;3.4% since 1999 vs +5.8% since 1988). Regimes overlap with secular trends; the very-high-rate bucket is mostly 1988&ndash;91.</span></li>
+  </ul>
+</div>
+
+<section class="measure">
+  <p style="color:var(--ink-2)">None of this makes the Fed irrelevant &mdash; the cost of money is one of the biggest forces in markets, and 2022 showed a hiking shock can do real damage. One rabbit hole deeper, the lesson is just that &ldquo;low rates good, high rates bad, cuts are a buy&rdquo; compresses three different things into one slogan. Pulled apart, the market&rsquo;s actual preference is duller and more sensible: a healthy economy, and a Fed that&rsquo;s sitting still.</p>
+</section>
+
+<footer class="wrap">
+  <div>Analysis and code by <b style="color:var(--ink-2)">@droskill</b>. Index and total-return prices from Norgate Data; analysis in Python (norgatedata + pandas). Companion to <a href="../nasdaq-rates-study/">&ldquo;Do Nasdaq stocks hate a rate hike?&rdquo;</a></div>
+  <p class="disc">For research and education only. Historical results are hypothetical, based on index and total-return data, and are not indicative of future results. Nothing here is investment advice.</p>
+</footer>
+
+</div>
+
+<script>
+// ---------- theme toggle ----------
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  try{var s=localStorage.getItem('lowrates-theme'); if(s)root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('lowrates-theme',next);}catch(e){}
+    drawAll();
+  });
+})();
+
+function cssvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var tip=document.getElementById('tip');
+function showTip(html,x,y){tip.innerHTML=html; tip.style.left=x+'px'; tip.style.top=y+'px'; tip.style.opacity=1;}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){
+  el.querySelectorAll('.bar').forEach(function(r){
+    r.addEventListener('mousemove',function(e){showTip(r.getAttribute('data-tip'),e.clientX,e.clientY);});
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ---------- flexible vertical bars (signed or unsigned, zero baseline) ----------
+function vbars(sel, o){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=o.cats, vals=o.values, colors=o.colors;
+  var ymin=o.ymin, ymax=o.ymax, step=o.step, dec=(o.dec==null?1:o.dec);
+  var unit=o.unit||'', sign=(o.sign!==false);
+  var W=920, H=360, mL=52, mR=14, mT=20, mB=44;
+  var pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  function fmt(v){return (sign&&v>0?'+':'')+v.toFixed(dec)+unit;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+  for(var g=ymin; g<=ymax+1e-9; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+yy.toFixed(1)+'" stroke="'+grid+'" stroke-width="1"/>';
+    var gl=(Math.abs(g-Math.round(g))<1e-9?g.toFixed(0):g.toFixed(dec<2?1:2));
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4).toFixed(1)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(sign&&g>0?'+':'')+gl+unit+'</text>';
+  }
+  var y0=y(Math.max(ymin,0));
+  svg+='<line x1="'+mL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mR)+'" y2="'+y0.toFixed(1)+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, bw=Math.min(gw*0.56, 66);
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw+gw/2, bx=gx-bw/2, v=vals[i], vy=y(v);
+    var col=cssvar(colors[i]);
+    var top=Math.min(vy,y0), bh=Math.abs(y0-vy);
+    svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'" data-tip="'+cats[i]+': <b>'+fmt(v)+'</b>"></rect>';
+    var ly=v>=0?vy-8:vy+16;
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="'+col+'" font-size="12.5" font-weight="600" text-anchor="middle">'+fmt(v)+'</text>';
+    svg+='<text x="'+gx.toFixed(1)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12" text-anchor="middle">'+cats[i]+'</text>';
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+// ---------- grouped bars (two series, signed, zero baseline) ----------
+function groupedBars(sel, opts){
+  var el=document.querySelector(sel); if(!el)return;
+  var cats=opts.cats, series=opts.series, ymax=opts.ymax, ymin=opts.ymin||0, unit=opts.unit||'%', sg=(opts.sign!==false), ldec=(opts.ldec==null?0:opts.ldec);
+  var W=920,H=360,mL=44,mR=14,mT=20,mB=46, pw=W-mL-mR, ph=H-mT-mB;
+  var y=function(v){return mT+ph-(v-ymin)/(ymax-ymin)*ph;};
+  var muted=cssvar('--muted'), grid=cssvar('--grid'), base=cssvar('--baseline'), ink=cssvar('--ink-2');
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.aria+'">';
+  var step=opts.ystep||10;
+  for(var g=ymin; g<=ymax+0.001; g+=step){
+    var yy=y(g);
+    svg+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+grid+'" stroke-width="1"/>';
+    svg+='<text x="'+(mL-8)+'" y="'+(yy+4)+'" fill="'+muted+'" font-size="12" text-anchor="end">'+(sg&&g>0?'+':'')+g+unit+'</text>';
+  }
+  var yzero=y(0);
+  svg+='<line x1="'+mL+'" y1="'+yzero+'" x2="'+(W-mR)+'" y2="'+yzero+'" stroke="'+base+'" stroke-width="1.5"/>';
+  var n=cats.length, gw=pw/n, ns=series.length;
+  var inner=gw*0.64, bw=Math.min(inner/ns-4, 46);
+  var totalBars=ns*bw+(ns-1)*6, startOff=(gw-totalBars)/2;
+  for(var i=0;i<n;i++){
+    var gx=mL+i*gw;
+    svg+='<text x="'+(gx+gw/2)+'" y="'+(H-mB+22)+'" fill="'+ink+'" font-size="12.5" text-anchor="middle">'+cats[i]+'</text>';
+    for(var s=0;s<ns;s++){
+      var v=series[s].values[i], bx=gx+startOff+s*(bw+6);
+      var by=Math.min(y(v),yzero), bh=Math.abs(y(v)-yzero);
+      var col=cssvar(series[s].colorVar);
+      svg+='<rect class="bar" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(bh,0.5).toFixed(1)+'" rx="3" fill="'+col+'" '
+         +'data-tip="'+cats[i]+' &middot; '+series[s].name+': <b>'+(sg&&v>=0?'+':'')+v.toFixed(1)+unit+'</b>"></rect>';
+      var ly=(v>=0?by-6:by+bh+14);
+      svg+='<text x="'+(bx+bw/2)+'" y="'+ly+'" fill="'+col+'" font-size="12" font-weight="600" text-anchor="middle">'+(sg&&v>=0?'+':'')+v.toFixed(ldec)+'</text>';
+    }
+  }
+  svg+='</svg>';
+  el.innerHTML=svg; bindTips(el);
+}
+
+function drawAll(){
+  vbars('#chart1',{
+    cats:['Raising','Flat','Cutting'],
+    values:[8.1,17.5,5.8],
+    colors:['--safe','--pos','--crit'],
+    ymin:0, ymax:20, step:5, unit:'%', dec:1, sign:true,
+    aria:'S&P 500 annualized return by rate direction 1988-2026: raising +8.1, flat +17.5, cutting +5.8'
+  });
+  vbars('#chart2',{
+    cats:['Low (<2%)','Mid (2-4%)','High (4-6%)','V.high (>6%)'],
+    values:[7.9,8.2,18.1,11.9],
+    colors:['--muted','--muted','--pos','--safe'],
+    ymin:0, ymax:20, step:5, unit:'%', dec:1, sign:true,
+    aria:'S&P 500 annualized return by rate level 1988-2026: low 7.9, mid 8.2, high 18.1, very high 11.9'
+  });
+  groupedBars('#chart3',{
+    cats:['Raising','Flat','Cutting'],
+    series:[
+      {name:'S&P 500', colorVar:'--safe', values:[5.7,16.5,-3.4]},
+      {name:'Nasdaq-100', colorVar:'--claim', values:[8.5,18.1,-0.8]}
+    ],
+    ymin:-4, ymax:20, ystep:4, unit:'%', sign:true, ldec:1,
+    aria:'S&P and Nasdaq annualized return by rate direction 1999-2026: both lowest while cutting'
+  });
+}
+drawAll();
+</script>
+</body>
+</html>
